@@ -1,52 +1,213 @@
 package com.example.s1636469.coinz;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.os.Debug;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity {
+
+import com.mapbox.android.core.location.LocationEngine;
+import com.mapbox.android.core.location.LocationEngineListener;
+import com.mapbox.android.core.location.LocationEnginePriority;
+import com.mapbox.android.core.location.LocationEngineProvider;
+import com.mapbox.android.core.permissions.PermissionsManager;
+import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
+import com.mapbox.mapboxsdk.geometry.LatLng;
+import com.mapbox.mapboxsdk.maps.MapView;
+import com.mapbox.mapboxsdk.maps.MapboxMap;
+import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
+import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin;
+import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode;
+
+import java.util.List;
+
+public class MainActivity extends AppCompatActivity implements  LocationEngineListener {
+
+    private MapView mapView;
+    private LocationLayerPlugin locationPlugin;
+    private MapboxMap mapboxMap;
+    private LocationEngine locationEngine;
+    private Location originLocation;
+
+    protected void setMapBox(MapboxMap map) {
+        this.mapboxMap = map;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Get Map from MAPBOX using key
+        // TODO: Store PublicKey in safe location
+        // Start and instance of Mapbox
+        Mapbox.getInstance(this, "pk.eyJ1IjoiZnJlZGRpZWpiYXdkZW4iLCJhIjoiY2ptb3NtZHhrMDAwazNwbDgzM2l4YjI1MSJ9.zCqzFmwVZoUGtTJgeZOMTw");
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+        // Set map to the last instance that was saved
+        MapView mapView = (MapView) findViewById(R.id.mapView);
+        this.mapView = mapView;
+        mapView.onCreate(savedInstanceState);
+        // check if permission is given for location access
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            // If it was granted define a callback funciton and fetch map
+            mapView.getMapAsync(new OnMapReadyCallback() {
+                @Override
+                public void onMapReady(MapboxMap mapboxMap) {
+                    setMapBox(mapboxMap);
+                    enableLocationPlugin();
+                }
+            });
+        } else {
+            // If permission was not given then get permission
+            if(shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                Toast.makeText(this, "GPS permission is needed!",Toast.LENGTH_SHORT).show();
             }
-        });
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+            // upon getting permission, fire request permissions function
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, Config.REQUEST_GPS);
         }
+    }
 
-        return super.onOptionsItemSelected(item);
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        // which service has been allowed
+        switch(requestCode) {
+            case Config.REQUEST_GPS: {
+                // if the permission has been granted
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // get map
+                    mapView.getMapAsync(new OnMapReadyCallback() {
+                        @Override
+                        public void onMapReady(MapboxMap mapboxMap) {
+                            // start location puck service
+                            locationPlugin = new LocationLayerPlugin(mapView, mapboxMap);
+                            // choose how the puck will be rendered
+                            locationPlugin.setRenderMode(RenderMode.COMPASS);
+                            // I have no idea what this does
+                            getLifecycle().addObserver(locationPlugin);
+                            // pass out the MapBoxMap Object
+                            setMapBox(mapboxMap);
+                            enableLocationPlugin();
+
+                        }
+                    });
+                } else {
+                    // oh no
+                }
+                return;
+            }
+        }
+    }
+
+    @SuppressWarnings( {"MissingPermission"})
+    private void enableLocationPlugin() {
+        // Check if permissions are enabled and if not request
+        if (PermissionsManager.areLocationPermissionsGranted(this)) {
+            // Create an instance of LOST location engine
+            startLocationEngine();
+
+            locationPlugin = new LocationLayerPlugin(mapView, mapboxMap,locationEngine);
+            locationPlugin.setRenderMode(RenderMode.COMPASS);
+            setCameraPosition(originLocation);
+
+        } else {
+
+        }
+    }
+
+    @SuppressWarnings( {"MissingPermission"})
+    protected void startLocationEngine() {
+        LocationEngineProvider  locationEngineProvider = new LocationEngineProvider(this);
+        this.locationEngine = locationEngineProvider.obtainBestLocationEngineAvailable();
+        locationEngine.setPriority(LocationEnginePriority.HIGH_ACCURACY);
+        Location lastLocation = locationEngine.getLastLocation();
+        if (lastLocation != null) {
+            System.out.println(lastLocation);
+            originLocation = lastLocation;
+            locationEngine.addLocationEngineListener(this);
+        } else {
+            locationEngine.addLocationEngineListener(this);
+        }
+        locationEngine.activate();
+
+    }
+
+    private void setCameraPosition(Location location) {
+        mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                new LatLng(location.getLatitude(), location.getLongitude()), 13),1000);
+    }
+    @SuppressWarnings( {"MissingPermission"})
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (locationEngine != null) {
+            locationEngine.requestLocationUpdates();
+        }
+        if (locationPlugin != null) {
+            locationPlugin.onStart();
+        }
+        mapView.onStart();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mapView.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mapView.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (locationEngine != null) {
+            locationEngine.removeLocationUpdates();
+        }
+        if (locationPlugin != null) {
+            locationPlugin.onStop();
+        }
+        mapView.onStop();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mapView.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mapView.onDestroy();
+        if (locationEngine != null) {
+            locationEngine.deactivate();
+        }
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
+    }
+    @SuppressWarnings( {"MissingPermission"})
+
+    @Override
+    public void onConnected() {
+        locationEngine.requestLocationUpdates();
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        if (location != null) {
+            originLocation = location;
+            setCameraPosition(location);
+        }
     }
 }

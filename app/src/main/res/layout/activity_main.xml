@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:mapbox="http://schemas.android.com/apk/res-auto"
     tools:context=".MainActivity">
 
     <android.support.design.widget.AppBarLayout
@@ -19,8 +20,14 @@
             app:popupTheme="@style/AppTheme.PopupOverlay" />
 
     </android.support.design.widget.AppBarLayout>
-
-    <include layout="@layout/content_main" />
+    <com.mapbox.mapboxsdk.maps.MapView
+        android:id="@+id/mapView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        mapbox:mapbox_cameraTargetLat="40.73581"
+        mapbox:mapbox_cameraTargetLng="-73.99155"
+        mapbox:mapbox_styleUrl="mapbox://styles/mapbox/streets-v10"
+        mapbox:mapbox_cameraZoom="11" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
