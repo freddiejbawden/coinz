@@ -6,7 +6,10 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Debug;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 
@@ -16,6 +19,7 @@ import com.mapbox.android.core.location.LocationEnginePriority;
 import com.mapbox.android.core.location.LocationEngineProvider;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
@@ -24,6 +28,14 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin;
 import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements  LocationEngineListener {
@@ -46,6 +58,9 @@ public class MainActivity extends AppCompatActivity implements  LocationEngineLi
         // Start and instance of Mapbox
         Mapbox.getInstance(this, "pk.eyJ1IjoiZnJlZGRpZWpiYXdkZW4iLCJhIjoiY2ptb3NtZHhrMDAwazNwbDgzM2l4YjI1MSJ9.zCqzFmwVZoUGtTJgeZOMTw");
         setContentView(R.layout.activity_main);
+        setUpListeners();
+        FloatingActionButton fab = findViewById(R.id.gps_centre);
+        fab.setImageResource(R.drawable.ic_gps_fixed);
         // Set map to the last instance that was saved
         MapView mapView = (MapView) findViewById(R.id.mapView);
         this.mapView = mapView;
@@ -58,6 +73,13 @@ public class MainActivity extends AppCompatActivity implements  LocationEngineLi
                 public void onMapReady(MapboxMap mapboxMap) {
                     setMapBox(mapboxMap);
                     enableLocationPlugin();
+                    Log.d("STATUS","location loaded");
+                    try {
+                        plotGeoJSON();
+                    } catch (Exception e) {
+                        Log.e("Failed at plotting", e.toString());
+                    }
+
                 }
             });
         } else {
@@ -107,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements  LocationEngineLi
         if (PermissionsManager.areLocationPermissionsGranted(this)) {
             // Create an instance of LOST location engine
             startLocationEngine();
-
+            Log.d("STATUS","Location Engine Started");
             locationPlugin = new LocationLayerPlugin(mapView, mapboxMap,locationEngine);
             locationPlugin.setRenderMode(RenderMode.COMPASS);
             setCameraPosition(originLocation);
@@ -136,13 +158,15 @@ public class MainActivity extends AppCompatActivity implements  LocationEngineLi
 
     private void setCameraPosition(Location location) {
         mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                new LatLng(location.getLatitude(), location.getLongitude()), 13),1000);
+                new LatLng(location.getLatitude(), location.getLongitude()), 15),1000);
     }
     @SuppressWarnings( {"MissingPermission"})
 
     @Override
     protected void onStart() {
         super.onStart();
+
+        // Location engine start up
         if (locationEngine != null) {
             locationEngine.requestLocationUpdates();
         }
@@ -209,5 +233,23 @@ public class MainActivity extends AppCompatActivity implements  LocationEngineLi
             originLocation = location;
             setCameraPosition(location);
         }
+    }
+
+    protected void setUpListeners() {
+        FloatingActionButton gps = (FloatingActionButton) this.findViewById(R.id.gps_centre);
+        gps.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Log.d("Map Update", "Centering camera");
+                setCameraPosition(originLocation);
+
+            }
+        });
+
+    }
+
+    private void plotGeoJSON() {
+        GeoJSONGetter getter = new GeoJSONGetter(this);
+        getter.execute("http://homepages.inf.ed.ac.uk/stg/coinz/2018/06/05/coinzmap.geojson");
+
     }
 }
