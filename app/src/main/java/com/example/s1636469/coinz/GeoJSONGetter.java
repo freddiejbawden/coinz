@@ -1,12 +1,14 @@
 package com.example.s1636469.coinz;
 
 import android.app.Activity;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.renderscript.ScriptGroup;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
@@ -29,8 +31,11 @@ import java.util.Scanner;
 public class GeoJSONGetter extends AsyncTask<String, Void, String> {
     static String out;
     private Activity activity;
-    public GeoJSONGetter(Activity activity) {
+    private MapboxMap mapboxMap;
+
+    public GeoJSONGetter(Activity activity,MapboxMap mapboxMap) {
         this.activity = activity;
+        this.mapboxMap = mapboxMap;
     }
     public static void downloadComplete(String result) {
         GeoJSONGetter.out = result;
@@ -65,6 +70,7 @@ public class GeoJSONGetter extends AsyncTask<String, Void, String> {
         String result = s.hasNext() ? s.next() : "";
         return result;
     }
+
     @Override
     protected  void onPostExecute(String result) {
 
@@ -72,34 +78,38 @@ public class GeoJSONGetter extends AsyncTask<String, Void, String> {
         GeoJSONGetter.downloadComplete(result);
         assert (result != null);
         MapView mapView = (MapView) this.activity.findViewById(R.id.mapView);
-        mapView.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(MapboxMap mapboxMap) {
-                try {
-                    Log.d("STATUS","RUNNING");
-                    String s = GeoJSONGetter.out;
-                    System.out.println(s);
-                    JSONObject json = new JSONObject(s);
-                    Log.d("STATUS","RUNNING 2");
 
-                    JSONArray points = json.getJSONArray("features");
-                    System.out.println(points.length());
-                    for (int i = 0; i < points.length(); i++) {
-                        System.out.println("HEHEHE");
-                        JSONObject feature = points.getJSONObject(i);
-                        Log.d("FEATURE",feature.toString());
-                        JSONObject geometery = feature.getJSONObject("geometry");
-                        JSONArray coords = geometery.getJSONArray("coordinates");
-                        LatLng pos = new LatLng(coords.getDouble(1), coords.getDouble(0));
-                        MarkerOptions mo = new MarkerOptions().position(pos);
-                        mapboxMap.addMarker(mo);
-                        Log.d("UPDATE","Adding pointer");
-                    }
-                } catch (JSONException e) {
+        try {
+            MapPoints.coins = new ArrayList<Coin>();
+            String s = GeoJSONGetter.out;
+            System.out.println(s);
+            assert(s != null);
+            assert(s.length() != 0);
+            assert(!s.equals("{}"));
+            JSONObject json = new JSONObject(s);
+            JSONArray points = json.getJSONArray("features");
+            System.out.println(points.length());
 
-                }
+            for (int i = 0; i < points.length(); i++) {
+                //Get Position of point and add marker
+                JSONObject feature = points.getJSONObject(i);
+                JSONObject geometery = feature.getJSONObject("geometry");
+                JSONArray coords = geometery.getJSONArray("coordinates");
+
+                //Add coin to the MapPoints object
+                JSONObject props = feature.getJSONObject("properties");
+                String id = (String) props.get("id");
+                String currency = (String) props.get("currency");
+                double value = Double.parseDouble((String) props.get("value"));
+                Location x = new Location("A");
+                x.setLatitude(coords.getDouble(1));
+                x.setLongitude(coords.getDouble(0));
+                MapPoints.coins.add(new Coin(id,currency,value,x));
             }
-        });
-
+            MapPoints.addMapPoints(this.activity,mapboxMap,MapPoints.coins);
+            Log.d("STATUS","Added all points");
+        } catch (JSONException e) {
+            Log.d("STATUS","GeoJSONGetter failed at post exectue");
+        }
     }
 }

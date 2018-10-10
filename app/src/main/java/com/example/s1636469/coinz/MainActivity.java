@@ -2,11 +2,15 @@ package com.example.s1636469.coinz;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
+import com.mapbox.mapboxsdk.annotations.IconFactory;
+import com.mapbox.mapboxsdk.annotations.Icon;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Debug;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -19,6 +23,7 @@ import com.mapbox.android.core.location.LocationEnginePriority;
 import com.mapbox.android.core.location.LocationEngineProvider;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -40,32 +45,21 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements  LocationEngineListener {
 
+
     private MapView mapView;
     private LocationLayerPlugin locationPlugin;
     private MapboxMap mapboxMap;
     private LocationEngine locationEngine;
     private Location originLocation;
 
+    public  MapboxMap getMapBoxMap() {
+        return mapboxMap;
+    }
+
     protected void setMapBox(MapboxMap map) {
         this.mapboxMap = map;
     }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        // Get Map from MAPBOX using key
-        // TODO: Store PublicKey in safe location
-        // Start and instance of Mapbox
-        Mapbox.getInstance(this, "pk.eyJ1IjoiZnJlZGRpZWpiYXdkZW4iLCJhIjoiY2ptb3NtZHhrMDAwazNwbDgzM2l4YjI1MSJ9.zCqzFmwVZoUGtTJgeZOMTw");
-        setContentView(R.layout.activity_main);
-        setUpListeners();
-        FloatingActionButton fab = findViewById(R.id.gps_centre);
-        fab.setImageResource(R.drawable.ic_gps_fixed);
-        // Set map to the last instance that was saved
-        MapView mapView = (MapView) findViewById(R.id.mapView);
-        this.mapView = mapView;
-        mapView.onCreate(savedInstanceState);
-        // check if permission is given for location access
+    public void getMap() {
         if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             // If it was granted define a callback funciton and fetch map
             mapView.getMapAsync(new OnMapReadyCallback() {
@@ -77,9 +71,9 @@ public class MainActivity extends AppCompatActivity implements  LocationEngineLi
                     try {
                         plotGeoJSON();
                     } catch (Exception e) {
-                        Log.e("Failed at plotting", e.toString());
+                        Log.d("STATUS", "Failed to plot geojson");
+                        Log.e("ERROR", e.toString());
                     }
-
                 }
             });
         } else {
@@ -90,6 +84,26 @@ public class MainActivity extends AppCompatActivity implements  LocationEngineLi
             // upon getting permission, fire request permissions function
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, Config.REQUEST_GPS);
         }
+    }
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // Get Map from MAPBOX using key
+        // TODO: Store PublicKey in safe location
+        // Start and instance of Mapbox
+        setContentView(R.layout.activity_main);
+        setUpListeners();
+        FloatingActionButton fab = findViewById(R.id.gps_centre);
+        fab.setImageResource(R.drawable.ic_gps_fixed);
+        Mapbox.getInstance(this, "pk.eyJ1IjoiZnJlZGRpZWpiYXdkZW4iLCJhIjoiY2ptb3NtZHhrMDAwazNwbDgzM2l4YjI1MSJ9.zCqzFmwVZoUGtTJgeZOMTw");
+        MapView mapView = findViewById(R.id.mapView);
+        this.mapView = mapView;
+        mapView.onCreate(savedInstanceState);
+        getMap();
+        // Set map to the last instance that was saved
+
+        // check if permission is given for location access
+
     }
 
     @Override
@@ -130,9 +144,10 @@ public class MainActivity extends AppCompatActivity implements  LocationEngineLi
             // Create an instance of LOST location engine
             startLocationEngine();
             Log.d("STATUS","Location Engine Started");
+            // TODO: "setCameraMode(CameraMode.Tracking)"
             locationPlugin = new LocationLayerPlugin(mapView, mapboxMap,locationEngine);
             locationPlugin.setRenderMode(RenderMode.COMPASS);
-            setCameraPosition(originLocation);
+            setCameraPosition(originLocation,true);
 
         } else {
 
@@ -156,12 +171,20 @@ public class MainActivity extends AppCompatActivity implements  LocationEngineLi
 
     }
 
-    private void setCameraPosition(Location location) {
-        mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                new LatLng(location.getLatitude(), location.getLongitude()), 15),1000);
-    }
-    @SuppressWarnings( {"MissingPermission"})
 
+    private void setCameraPosition(Location location,boolean resetCamera) {
+        double zoomLevel;
+        if (resetCamera) {
+            zoomLevel = 15;
+        } else {
+            zoomLevel = this.mapboxMap.getCameraPosition().zoom;
+        }
+        Log.d("UI_UPDATE", "Moving camera");
+        mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                new LatLng(location.getLatitude(), location.getLongitude()), zoomLevel),1000);
+    }
+
+    @SuppressWarnings( {"MissingPermission"})
     @Override
     protected void onStart() {
         super.onStart();
@@ -231,7 +254,11 @@ public class MainActivity extends AppCompatActivity implements  LocationEngineLi
     public void onLocationChanged(Location location) {
         if (location != null) {
             originLocation = location;
-            setCameraPosition(location);
+            setCameraPosition(location,false);
+            if (MapPoints.coins.size() > 0) {
+                CoinSearcher coinSearcher = new CoinSearcher(this, mapboxMap);
+                coinSearcher.execute(originLocation);
+            }
         }
     }
 
@@ -239,17 +266,14 @@ public class MainActivity extends AppCompatActivity implements  LocationEngineLi
         FloatingActionButton gps = (FloatingActionButton) this.findViewById(R.id.gps_centre);
         gps.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Log.d("Map Update", "Centering camera");
-                setCameraPosition(originLocation);
-
+                Log.d("UI_UPDATE", "GPS Centering button pressed");
+                setCameraPosition(originLocation,true);
             }
         });
-
     }
 
     private void plotGeoJSON() {
-        GeoJSONGetter getter = new GeoJSONGetter(this);
+        GeoJSONGetter getter = new GeoJSONGetter(this,mapboxMap);
         getter.execute("http://homepages.inf.ed.ac.uk/stg/coinz/2018/06/05/coinzmap.geojson");
-
     }
 }
