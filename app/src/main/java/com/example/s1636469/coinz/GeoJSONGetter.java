@@ -32,10 +32,13 @@ public class GeoJSONGetter extends AsyncTask<String, Void, String> {
     static String out;
     private Activity activity;
     private MapboxMap mapboxMap;
+    private Location location;
 
-    public GeoJSONGetter(Activity activity,MapboxMap mapboxMap) {
+
+    public GeoJSONGetter(Activity activity,MapboxMap mapboxMap, Location location) {
         this.activity = activity;
         this.mapboxMap = mapboxMap;
+        this.location = location;
     }
     public static void downloadComplete(String result) {
         GeoJSONGetter.out = result;
@@ -106,8 +109,11 @@ public class GeoJSONGetter extends AsyncTask<String, Void, String> {
                 x.setLongitude(coords.getDouble(0));
                 MapPoints.coins.add(new Coin(id,currency,value,x));
             }
-            MapPoints.addMapPoints(this.activity,mapboxMap,MapPoints.coins);
-            Log.d("STATUS","Added all points");
+            Log.d("STATUS","Added Coins to array");
+            CoinSearcher coinSearcher = new CoinSearcher(this.activity, mapboxMap);
+            coinSearcher.execute(this.location);
+
+
         } catch (JSONException e) {
             Log.d("STATUS","GeoJSONGetter failed at post exectue");
         }

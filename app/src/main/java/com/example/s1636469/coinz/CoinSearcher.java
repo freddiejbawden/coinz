@@ -4,13 +4,14 @@ import android.app.Activity;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.view.ViewOutlineProvider;
 
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CoinSearcher extends AsyncTask<Location, Void, List<Coin>> {
+public class CoinSearcher extends AsyncTask<Location, Void, Void> {
     private List<Coin> coinsNearbyCurrentLocation;
     private Activity activity;
     private MapboxMap mapboxMap;
@@ -18,7 +19,8 @@ public class CoinSearcher extends AsyncTask<Location, Void, List<Coin>> {
         this.activity = activity;
         this.mapboxMap = mapboxMap;
     }
-    protected List<Coin> doInBackground(Location... location) {
+    protected Void doInBackground(Location... location) {
+        Log.d("STATUS","Starting coin search");
         if (MapPoints.coins.size() == 0) {
             Log.d("STATUS", "Unable to get list of coins");
             // TODO: Send dialog
@@ -26,20 +28,25 @@ public class CoinSearcher extends AsyncTask<Location, Void, List<Coin>> {
         }
         Location userLocation = location[0];
         Coin c;
-        ArrayList<Coin> nearbyCoins = new ArrayList<Coin>();
         for (int i = 0; i < MapPoints.coins.size(); i++) {
             c = MapPoints.coins.get(i);
-            if (userLocation.distanceTo(c.getLocation()) < Config.distanceForCollection) {
-                nearbyCoins.add(c);
-                c.setNearby(true);
+            float dist = userLocation.distanceTo(c.getLocation()) ;
+            if (dist < Config.distanceForCollection) {
+                Log.d("STATUS","near");
+                MapPoints.coins.get(i).setNearby(true);
+
+            } else {
+                MapPoints.coins.get(i).setNearby(false);
             }
         }
-        return nearbyCoins;
+        return null;
     }
 
     @Override
-    protected void onPostExecute(List<Coin> nearbyCoins) {
-        super.onPostExecute(nearbyCoins);
-        MapPoints.addMapPoints(this.activity,mapboxMap,nearbyCoins);
+    protected void onPostExecute(Void v) {
+        super.onPostExecute(v);
+        MapPoints.addMapPoints(this.activity,mapboxMap);
+
+
     }
 }

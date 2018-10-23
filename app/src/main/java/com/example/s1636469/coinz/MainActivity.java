@@ -255,8 +255,8 @@ public class MainActivity extends AppCompatActivity implements  LocationEngineLi
         if (location != null) {
             originLocation = location;
             setCameraPosition(location,false);
+            CoinSearcher coinSearcher = new CoinSearcher(this, mapboxMap);
             if (MapPoints.coins.size() > 0) {
-                CoinSearcher coinSearcher = new CoinSearcher(this, mapboxMap);
                 coinSearcher.execute(originLocation);
             }
         }
@@ -273,7 +273,9 @@ public class MainActivity extends AppCompatActivity implements  LocationEngineLi
     }
 
     private void plotGeoJSON() {
-        GeoJSONGetter getter = new GeoJSONGetter(this,mapboxMap);
+        GeoJSONGetter getter = new GeoJSONGetter(this,mapboxMap,this.originLocation);
         getter.execute("http://homepages.inf.ed.ac.uk/stg/coinz/2018/06/05/coinzmap.geojson");
+
+
     }
 }

@@ -1,5 +1,6 @@
 package com.example.s1636469.coinz;
 
+import android.graphics.Color;
 import android.location.Location;
 
 public class Coin {
@@ -36,7 +37,25 @@ public class Coin {
     }
     @Override
     public String toString() {
-        return id;
+        return id + ", " + isNearby();
     }
-
+    public int getColor() {
+        if (this.isNearby()) {
+            return Config.NEAR_COLOR;
+        } else {
+            if (this.currency.equals("QUID")) {
+                return Config.QUID_COLOR;
+            }
+            if (this.currency.equals("PENY")) {
+                return Config.PENY_COLOR;
+            }
+            if (this.currency.equals("DOLR")) {
+                return Config.DOLR_COLOR;
+            }
+            if (this.currency.equals("SHIL")) {
+                return Config.SHIL_COLOR;
+            }
+            return 0;
+        }
+    }
 }
