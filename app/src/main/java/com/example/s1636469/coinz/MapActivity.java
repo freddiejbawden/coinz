@@ -1,18 +1,17 @@
 package com.example.s1636469.coinz;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.drawable.Drawable;
-import com.mapbox.mapboxsdk.annotations.IconFactory;
-import com.mapbox.mapboxsdk.annotations.Icon;
+import android.graphics.Color;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Debug;
+import android.support.annotation.NonNull;
+import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
@@ -23,8 +22,6 @@ import com.mapbox.android.core.location.LocationEnginePriority;
 import com.mapbox.android.core.location.LocationEngineProvider;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.mapboxsdk.Mapbox;
-import com.mapbox.mapboxsdk.annotations.IconFactory;
-import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
@@ -33,17 +30,9 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin;
 import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.util.Map;
 
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-
-public class MainActivity extends AppCompatActivity implements  LocationEngineListener {
+public class MapActivity extends AppCompatActivity implements LocationEngineListener{
 
 
     private MapView mapView;
@@ -51,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements  LocationEngineLi
     private MapboxMap mapboxMap;
     private LocationEngine locationEngine;
     private Location originLocation;
+
 
     public  MapboxMap getMapBoxMap() {
         return mapboxMap;
@@ -88,10 +78,10 @@ public class MainActivity extends AppCompatActivity implements  LocationEngineLi
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_map);
         // Get Map from MAPBOX using key
         // TODO: Store PublicKey in safe location
         // Start and instance of Mapbox
-        setContentView(R.layout.activity_main);
         setUpListeners();
         FloatingActionButton fab = findViewById(R.id.gps_centre);
         fab.setImageResource(R.drawable.ic_gps_fixed);
@@ -264,12 +254,40 @@ public class MainActivity extends AppCompatActivity implements  LocationEngineLi
 
     protected void setUpListeners() {
         FloatingActionButton gps = (FloatingActionButton) this.findViewById(R.id.gps_centre);
+
         gps.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Log.d("UI_UPDATE", "GPS Centering button pressed");
                 setCameraPosition(originLocation,true);
             }
         });
+        BottomNavigationView bottomNavigation = (BottomNavigationView) findViewById(R.id.bottomNavigationView);
+        bottomNavigation.setOnNavigationItemSelectedListener(
+                new BottomNavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                      switch(menuItem.getItemId()) {
+                          case (R.id.action_map):
+                              Log.d("UI UPDATE", "map pressed");
+                              startActivity(new Intent(getApplicationContext(), MapActivity.class));
+                              break;
+                          case (R.id.action_bank):
+                              Log.d("UI UPDATE", "bank pressed");
+                              startActivity(new Intent(getApplicationContext(), BankActivity.class));
+                              break;
+                          case (R.id.action_community):
+                              Log.d("UI UPDATE", "community pressed");
+                              startActivity(new Intent(getApplicationContext(), CommunityActivity.class));
+                              break;
+                          case (R.id.action_profile):
+                              Log.d("UI UPDATE", "profile pressed");
+                              startActivity(new Intent(getApplicationContext(), ProfileActivity.class));
+                              break;
+                      }
+                      return false;
+                    }
+                }
+        );
     }
 
     private void plotGeoJSON() {

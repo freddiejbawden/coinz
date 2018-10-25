@@ -1,10 +1,18 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.example.s1636469.coinz.MainActivity">
-    <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:title="@string/action_settings"
-        app:showAsAction="never" />
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/action_map"
+        android:title="Map"
+        android:icon="@drawable/ic_coin_point" />
+
+    <item android:id="@+id/action_bank"
+        android:title="Bank"
+        android:icon="@drawable/ic_bank" />
+
+    <item android:id="@+id/action_community"
+        android:title="Community"
+        android:icon="@drawable/ic_community" />
+
+    <item android:id="@+id/action_profile"
+        android:title="Profile"
+        android:icon="@drawable/ic_profile" />
 </menu>
