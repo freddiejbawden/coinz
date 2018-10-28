@@ -58,8 +58,8 @@ public class GeoJSONGetter extends AsyncTask<String, Void, String> {
     }
     private InputStream downloadURL(URL url) throws IOException {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setReadTimeout(10000);
-        conn.setConnectTimeout(15000);
+        conn.setReadTimeout(1000);
+        conn.setConnectTimeout(5000);
         conn.setRequestMethod("GET");
         conn.setDoInput(true);
         conn.connect();

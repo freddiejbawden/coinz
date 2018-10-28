@@ -7,22 +7,22 @@
     android:layout_width="match_parent"
 
     android:layout_height="match_parent"
-    tools:context=".MapActivity">
+    tools:context=".MapFragment">
 
 
     <android.support.design.widget.BottomNavigationView
         android:id="@+id/bottomNavigationView"
         android:layout_width="0dp"
-        android:layout_height="61dp"
+        android:layout_height="60dp"
         android:background="@color/colorPrimary"
         android:visibility="visible"
+        app:itemIconTint="@drawable/nav_menu"
+        app:itemTextColor="@drawable/nav_menu"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:menu="@menu/menu_main"
-        app:itemIconTint="@drawable/nav_menu"
-        app:itemTextColor="@drawable/nav_menu"
         tools:background="#3f3f3f">
 
     </android.support.design.widget.BottomNavigationView>
@@ -31,7 +31,6 @@
         android:id="@+id/mapView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toTopOf="@+id/bottomNavigationView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
