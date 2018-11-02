@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -30,6 +31,8 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin;
 import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode;
+
+import static com.mapbox.mapboxsdk.Mapbox.getApplicationContext;
 
 public class MapFragment extends Fragment implements LocationEngineListener {
     private static final String TAG = "MapFragment";
@@ -59,7 +62,8 @@ public class MapFragment extends Fragment implements LocationEngineListener {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         if (view == null) {
-            Log.d("STATUS", "view is null");
+            Log.d("STATUS", "view is null");    locationEngine.setInterval(5000);
+
         } else {
             setUpListeners();
         }
@@ -79,15 +83,18 @@ public class MapFragment extends Fragment implements LocationEngineListener {
     public  MapboxMap getMapBoxMap() {
         return mapboxMap;
     }
+
     protected void setMapBox(MapboxMap map) {
         this.mapboxMap = map;
     }
+
     public void getMap() {
         if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             // If it was granted define a callback funciton and fetch map
             mapView.getMapAsync(new OnMapReadyCallback() {
                 @Override
                 public void onMapReady(MapboxMap mapboxMap) {
+
                     setMapBox(mapboxMap);
                     enableLocationPlugin();
                     Log.d("STATUS","location loaded");
@@ -108,6 +115,7 @@ public class MapFragment extends Fragment implements LocationEngineListener {
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, Config.REQUEST_GPS);
         }
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         // which service has been allowed
@@ -123,16 +131,19 @@ public class MapFragment extends Fragment implements LocationEngineListener {
                             locationPlugin = new LocationLayerPlugin(mapView, mapboxMap);
                             // choose how the puck will be rendered
                             locationPlugin.setRenderMode(RenderMode.COMPASS);
-                            // I have no idea what this does
-                            getLifecycle().addObserver(locationPlugin);
-                            // pass out the MapBoxMap Object
                             setMapBox(mapboxMap);
                             enableLocationPlugin();
-
+                            Log.d("STATUS","location loaded");
+                            try {
+                                plotGeoJSON();
+                            } catch (Exception e) {
+                                Log.d("STATUS", "Failed to plot geojson");
+                                Log.e("ERROR", e.toString());
+                            }
                         }
                     });
                 } else {
-                    // oh no
+                    Toast.makeText(getActivity(), "Oh no", Toast.LENGTH_LONG).show();
                 }
                 return;
             }
@@ -145,14 +156,14 @@ public class MapFragment extends Fragment implements LocationEngineListener {
         if (PermissionsManager.areLocationPermissionsGranted(context)) {
             // Create an instance of LOST location engine
             startLocationEngine();
-            Log.d("STATUS","Location Engine Started");
+
             // TODO: "setCameraMode(CameraMode.Tracking)"
             locationPlugin = new LocationLayerPlugin(mapView, mapboxMap,locationEngine);
             locationPlugin.setRenderMode(RenderMode.COMPASS);
             setCameraPosition(originLocation,true,false);
 
         } else {
-
+            Toast.makeText(getActivity(), "Cannot access location, unable to aquire permissions!",Toast.LENGTH_LONG).show();
         }
     }
 
@@ -161,26 +172,27 @@ public class MapFragment extends Fragment implements LocationEngineListener {
         LocationEngineProvider locationEngineProvider = new LocationEngineProvider(context);
         this.locationEngine = locationEngineProvider.obtainBestLocationEngineAvailable();
         locationEngine.setPriority(LocationEnginePriority.HIGH_ACCURACY);
+        locationEngine.setFastestInterval(100);
         Location lastLocation = locationEngine.getLastLocation();
         if (lastLocation != null) {
-            System.out.println(lastLocation);
             originLocation = lastLocation;
             locationEngine.addLocationEngineListener(this);
         } else {
+            Log.d("STATUS", "Location Engine has no \'lastLocation\' ");
             locationEngine.addLocationEngineListener(this);
         }
         locationEngine.activate();
+        Log.d("STATUS","Location Engine Started");
 
     }
 
 
     private void setCameraPosition(Location location,boolean resetCamera,boolean animate) {
         double zoomLevel;
-        if (location == null) {
+        if (location ==null) {
             Toast.makeText(context,"Could not find current location to centre on, please try again later.",
                     Toast.LENGTH_SHORT).show();
-
-
+            return;
         }
         if (resetCamera) {
             zoomLevel = 15;
@@ -257,11 +269,15 @@ public class MapFragment extends Fragment implements LocationEngineListener {
 
     @Override
     public void onConnected() {
+        Log.d("STATUS","Location Engine Connected");
         locationEngine.requestLocationUpdates();
     }
 
+
     @Override
     public void onLocationChanged(Location location) {
+        // TODO: Find out why my phone does not update the location here
+        Log.d("STATUS","location changed");
         if (location != null) {
             originLocation = location;
             setCameraPosition(location,false,true);
@@ -269,6 +285,8 @@ public class MapFragment extends Fragment implements LocationEngineListener {
             if (MapPoints.coins.size() > 0) {
                 coinSearcher.execute(originLocation);
             }
+        } else {
+          Log.d("STATUS","Location update is null");
         }
     }
 
@@ -278,7 +296,17 @@ public class MapFragment extends Fragment implements LocationEngineListener {
         gps.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Log.d("UI_UPDATE", "GPS Centering button pressed");
-                setCameraPosition(originLocation,true, true);
+
+                if (originLocation == null) {
+                    try {
+                        locationPlugin.forceLocationUpdate(locationPlugin.getLastKnownLocation());
+                    } catch (SecurityException e) {
+                        Log.d("Status","Cannot get permission to find location");
+                    }
+                    Toast.makeText(getActivity(), "Cannot find current location to center on",Toast.LENGTH_LONG).show();
+                } else {
+                    setCameraPosition(originLocation,true, true);
+                }
             }
         });
     }

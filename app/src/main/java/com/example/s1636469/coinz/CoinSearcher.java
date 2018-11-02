@@ -5,6 +5,7 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.ViewOutlineProvider;
+import android.widget.Toast;
 
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 
@@ -20,10 +21,14 @@ public class CoinSearcher extends AsyncTask<Location, Void, Void> {
         this.mapboxMap = mapboxMap;
     }
     protected Void doInBackground(Location... location) {
+        if (location[0] == null) {
+            Log.d("STATUS","Location is null so cannot perform coin search");
+            return null;
+        }
         Log.d("STATUS","Starting coin search");
         if (MapPoints.coins.size() == 0) {
             Log.d("STATUS", "Unable to get list of coins");
-            // TODO: Send dialog
+            Toast.makeText(activity, "Unable to get list of coins, please try again later.",Toast.LENGTH_LONG);
             return null;
         }
         Location userLocation = location[0];

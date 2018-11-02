@@ -7,6 +7,7 @@ import android.renderscript.ScriptGroup;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +49,7 @@ public class GeoJSONGetter extends AsyncTask<String, Void, String> {
     @Override
     protected String doInBackground(String... urls){
         try {
+            Log.d("STATUS","Starting download");
             return loadFileFromNetwork(urls[0]);
         } catch (IOException e) {
             Log.e("STATUS", e.toString());
@@ -54,17 +57,31 @@ public class GeoJSONGetter extends AsyncTask<String, Void, String> {
         }
     }
     private String loadFileFromNetwork(String urlString) throws IOException {
-        return readStream(downloadURL(new URL(urlString)));
+        try {
+            return readStream(downloadURL(new URL(urlString)));
+        } catch (NullPointerException e) {
+            return "";
+        }
+
     }
     private InputStream downloadURL(URL url) throws IOException {
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setReadTimeout(1000);
-        conn.setConnectTimeout(5000);
-        conn.setRequestMethod("GET");
-        conn.setDoInput(true);
-        conn.connect();
-        System.out.println(conn.getResponseCode());
-        return conn.getInputStream();
+        try {
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setReadTimeout(1000);
+            conn.setConnectTimeout(5000);
+            conn.setRequestMethod("GET");
+            conn.setDoInput(true);
+            conn.connect();
+            System.out.println(conn.getResponseCode());
+            return conn.getInputStream();
+        } catch (SocketTimeoutException e) {
+            Log.d("STATUS", "socket timed out");
+            return null;
+        } catch (IOException e){
+            Log.d("STATUS","IOExpection");
+            return null;
+        }
+
     }
 
     @NonNull
@@ -76,12 +93,16 @@ public class GeoJSONGetter extends AsyncTask<String, Void, String> {
 
     @Override
     protected  void onPostExecute(String result) {
-
         super.onPostExecute(result);
+        if (result.equals("")) {
+            Log.d("STATUS", "readStream was blank");
+            Toast.makeText(this.activity,"Unable to get coin location data",Toast.LENGTH_LONG).show();
+            return;
+        }
         GeoJSONGetter.downloadComplete(result);
         assert (result != null);
         MapView mapView = (MapView) this.activity.findViewById(R.id.mapView);
-
+        Log.d("STATUS",result);
         try {
             MapPoints.coins = new ArrayList<Coin>();
             String s = GeoJSONGetter.out;
