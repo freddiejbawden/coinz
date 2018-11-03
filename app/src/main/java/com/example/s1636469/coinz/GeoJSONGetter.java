@@ -102,17 +102,14 @@ public class GeoJSONGetter extends AsyncTask<String, Void, String> {
         GeoJSONGetter.downloadComplete(result);
         assert (result != null);
         MapView mapView = (MapView) this.activity.findViewById(R.id.mapView);
-        Log.d("STATUS",result);
         try {
             MapPoints.coins = new ArrayList<Coin>();
             String s = GeoJSONGetter.out;
-            System.out.println(s);
             assert(s != null);
             assert(s.length() != 0);
             assert(!s.equals("{}"));
             JSONObject json = new JSONObject(s);
             JSONArray points = json.getJSONArray("features");
-            System.out.println(points.length());
 
             for (int i = 0; i < points.length(); i++) {
                 //Get Position of point and add marker

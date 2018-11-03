@@ -11,5 +11,6 @@
     <color name="colorSecondaryDark">#c68400</color>
     <color name="colorSecondaryLight">#ffe54c</color>
 
-
+    <color name="colorTrendUp">#38c153</color>
+    <color name="colorTrendDown">#c13c38</color>
 </resources>
