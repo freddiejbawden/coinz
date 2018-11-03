@@ -1,6 +1,8 @@
 package com.example.s1636469.coinz;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
@@ -24,6 +26,12 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Log.d(TAG, "onCreate: Starting");
+
+        //TODO: Change this so we take it from the log in
+        SharedPreferences sharedPreferences = this.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("username","test");
+
 
         mSecionsPageAdapter = new SectionsPageAdapter(getSupportFragmentManager());
         mViewPager = (NoSwipingViewPager) findViewById(R.id.container);
@@ -88,7 +96,7 @@ public class MainActivity extends AppCompatActivity
         adapter.addFragment(new MapFragment(), "MapFragment");
         adapter.addFragment(new BankFragment(), "BankFragment");
         adapter.addFragment(new CommunityFragment(), "CommunityFragment");
-        adapter.addFragment(new ProfileFragment(), "ProfileFragment");
+        adapter.addFragment(new WalletFragment(), "WalletFragment");
         viewPager.setAdapter(adapter);
     }
 }

@@ -7,13 +7,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-public class ProfileFragment extends Fragment {
-    private static final String TAG = "ProfileFragment";
+public class WalletFragment extends Fragment {
+    private static final String TAG = "WalletFragment";
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.profile_fragment,container,false);
+        View view = inflater.inflate(R.layout.wallet_fragment,container,false);
         return view;
     }
 }
