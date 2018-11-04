@@ -1,23 +1,22 @@
 package com.example.s1636469.coinz;
 
-import android.graphics.Color;
 import android.location.Location;
 
 public class Coin {
-
+    // TODO: Clean up coin type casting; sometimes float sometimes double
     private String id;
     private String currency;
     private Location location;
     private double value;
     private boolean nearby;
-    public Coin(String id, String currency,double value, Location location) {
+    Coin(String id, String currency, double value, Location location) {
         this.id = id;
         this.currency = currency;
         this.location = location;
         this.value = value;
         this.nearby = false;
     }
-
+    public String getCurrency() {return currency;}
     public String getId() {
         return id;
     }
@@ -32,7 +31,7 @@ public class Coin {
     public void setNearby(boolean nearby) {
         this.nearby = nearby;
     }
-    public boolean isNearby() {
+    private boolean isNearby() {
         return nearby;
     }
     @Override
@@ -58,4 +57,14 @@ public class Coin {
             return 0;
         }
     }
+    @Override
+    public boolean equals(Object o) {
+        if (o.getClass() == Coin.class) {
+            Coin oCoin = (Coin) o;
+            return (oCoin.getId().equals(this.getId()));
+        } else {
+            return false;
+        }
+    }
+
 }

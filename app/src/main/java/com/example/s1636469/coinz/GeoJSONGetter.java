@@ -9,6 +9,12 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -93,6 +99,7 @@ public class GeoJSONGetter extends AsyncTask<String, Void, String> {
 
     @Override
     protected  void onPostExecute(String result) {
+
         super.onPostExecute(result);
         if (result.equals("")) {
             Log.d("STATUS", "readStream was blank");
@@ -111,27 +118,46 @@ public class GeoJSONGetter extends AsyncTask<String, Void, String> {
             JSONObject json = new JSONObject(s);
             JSONArray points = json.getJSONArray("features");
 
-            for (int i = 0; i < points.length(); i++) {
-                //Get Position of point and add marker
-                JSONObject feature = points.getJSONObject(i);
-                JSONObject geometery = feature.getJSONObject("geometry");
-                JSONArray coords = geometery.getJSONArray("coordinates");
+            FirebaseFirestore.setLoggingEnabled(false);
+            FirebaseFirestore database = FirebaseFirestore.getInstance();
+            FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
+                    .setPersistenceEnabled(true)
+                    .build();
+            database.setFirestoreSettings(settings);
 
-                //Add coin to the MapPoints object
-                JSONObject props = feature.getJSONObject("properties");
-                String id = (String) props.get("id");
-                String currency = (String) props.get("currency");
-                double value = Double.parseDouble((String) props.get("value"));
-                Location x = new Location("A");
-                x.setLatitude(coords.getDouble(1));
-                x.setLongitude(coords.getDouble(0));
-                MapPoints.coins.add(new Coin(id,currency,value,x));
-            }
-            Log.d("STATUS","Added Coins to array");
-            CoinSearcher coinSearcher = new CoinSearcher(this.activity, mapboxMap);
-            coinSearcher.execute(this.location);
+            final DocumentReference docRef = database.collection("users").document("initial");
+            docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    try {
+                        ArrayList<String> collected = (ArrayList<String>) task.getResult().getData().get("collected");
+                        for (int i = 0; i < points.length(); i++) {
+                            //Get Position of point and add marker
+                            JSONObject feature = points.getJSONObject(i);
+                            JSONObject geometery = feature.getJSONObject("geometry");
+                            JSONArray coords = geometery.getJSONArray("coordinates");
 
+                            //Add coin to the MapPoints object
+                            JSONObject props = feature.getJSONObject("properties");
+                            String id = (String) props.get("id");
+                            if (!collected.contains(id)){
+                                String currency = (String) props.get("currency");
+                                double value = Double.parseDouble((String) props.get("value"));
+                                Location x = new Location("A");
+                                x.setLatitude(coords.getDouble(1));
+                                x.setLongitude(coords.getDouble(0));
+                                MapPoints.coins.add(new Coin(id, currency, value, x));
 
+                            }
+                        }
+                        Log.d("STATUS", "Added Coins to array");
+                        CoinSearcher coinSearcher = new CoinSearcher(activity, mapboxMap);
+                        coinSearcher.execute(location);
+                    } catch (JSONException e) {
+                        Log.e("ERROR", "error parsing json");
+                    }
+                }
+            });
         } catch (JSONException e) {
             Log.d("STATUS","GeoJSONGetter failed at post exectue");
         }

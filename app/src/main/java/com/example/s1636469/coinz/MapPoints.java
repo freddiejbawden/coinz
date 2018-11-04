@@ -14,6 +14,7 @@ import android.util.Log;
 
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
+import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
@@ -23,6 +24,7 @@ import java.util.List;
 
 public class MapPoints {
     public static List<Coin> coins = new ArrayList<Coin>();
+    public static List<MarkerOptions> markers = new ArrayList<MarkerOptions>();
     public static void addMapPoints(Context context, MapboxMap mapboxMap) {
         IconFactory iconFactory = IconFactory.getInstance(context);
         Icon ic;
@@ -39,6 +41,7 @@ public class MapPoints {
             LatLng pos = new LatLng(c.getLocation());
             MarkerOptions mo = new MarkerOptions().position(pos).icon(ic);
             mapboxMap.addMarker(mo);
+            MapPoints.markers.add(mo);
         }
     }
 }

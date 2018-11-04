@@ -89,6 +89,7 @@ public class MapFragment extends Fragment implements LocationEngineListener {
     }
 
     public void getMap() {
+
         if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             // If it was granted define a callback funciton and fetch map
             mapView.getMapAsync(new OnMapReadyCallback() {
@@ -99,6 +100,7 @@ public class MapFragment extends Fragment implements LocationEngineListener {
                     enableLocationPlugin();
                     Log.d("STATUS","location loaded");
                     try {
+
                         plotGeoJSON();
                     } catch (Exception e) {
                         Log.d("STATUS", "Failed to plot geojson");

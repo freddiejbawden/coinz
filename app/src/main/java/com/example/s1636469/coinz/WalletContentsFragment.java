@@ -53,7 +53,7 @@ public class WalletContentsFragment extends Fragment {
                     Map<String, Object> docSnap = task.getResult().getData();
                     for (String key : docSnap.keySet()) {
                         if (!key.equals("friends")) {
-                            float value = (float) ((long) docSnap.get(key));
+                            float value = Float.parseFloat((String) docSnap.get(key));
                             toAdd.add(new WalletCurrency(key, value));
                         }
                     }
