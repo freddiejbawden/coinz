@@ -29,18 +29,21 @@ public class CoinSearcher extends AsyncTask<Location, Void, Void> {
     private List<Coin> coinsNearbyCurrentLocation;
     private Activity activity;
     private MapboxMap mapboxMap;
+    private String TAG = "CoinSearcher";
+
+
     public CoinSearcher(Activity activity,MapboxMap mapboxMap) {
         this.activity = activity;
         this.mapboxMap = mapboxMap;
     }
     protected Void doInBackground(Location... location) {
         if (location[0] == null) {
-            Log.d("STATUS","Location is null so cannot perform coin search");
+            Log.d(TAG,"Location is null so cannot perform coin search");
             return null;
         }
-        Log.d("STATUS","Starting coin search");
+        Log.d(TAG,"Starting coin search");
         if (MapPoints.coins.size() == 0) {
-            Log.d("STATUS", "Unable to get list of coins");
+            Log.d(TAG, "Unable to get list of coins");
             Toast.makeText(activity, "Unable to get list of coins, please try again later.",Toast.LENGTH_LONG);
             return null;
         }
@@ -51,7 +54,7 @@ public class CoinSearcher extends AsyncTask<Location, Void, Void> {
                 .setPersistenceEnabled(true)
                 .build();
         database.setFirestoreSettings(settings);
-
+        //TODO: Replace Placeholder name with localStorage retrival
         final DocumentReference docRef = database.collection("users").document("initial");
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
@@ -66,16 +69,20 @@ public class CoinSearcher extends AsyncTask<Location, Void, Void> {
                     c = MapPoints.coins.get(i);
                     float dist = userLocation.distanceTo(c.getLocation()) ;
                     if (dist < Config.distanceForCollection) {
-                        //TODO: Remove the coin
                         Coin nearbyCoin = MapPoints.coins.get(i);
+                        Log.d(TAG,nearbyCoin.getId());
                         double val = nearbyCoin.getValue();
                         String cur = nearbyCoin.getCurrency();
-                        //TODO: Replace Placeholder name with localStorage retrival
-                        Log.d("NEARBY",nearbyCoin.getId());
-                        nearbyIds.add(nearbyCoin.getId());
                         double new_val = Double.parseDouble((String) data.get(cur));
-                        mapboxMap.removeMarker(MapPoints.markers.get(i).getMarker());
                         data.put(cur,new_val+"");
+
+                        //add to collected list
+                        nearbyIds.add(nearbyCoin.getId());
+
+                        //Remove the marker from the map
+                        mapboxMap.removeMarker(MapPoints.markers.get(i).getMarker());
+                        MapPoints.coins.remove(i);
+
                     }
                 }
                 collected.addAll(nearbyIds);
@@ -83,11 +90,7 @@ public class CoinSearcher extends AsyncTask<Location, Void, Void> {
                 docRef.set(data, SetOptions.merge()).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
-                        //TODO: Get Coin Lord Stewart to help remove the coin from the map
-                        Log.d("STATUS","DONE.");
-
-
-                        //TODO: Create list of coins to search in memory and update this
+                        Log.d(TAG,"Done.");
                     }
                 });
             }
@@ -99,8 +102,5 @@ public class CoinSearcher extends AsyncTask<Location, Void, Void> {
     @Override
     protected void onPostExecute(Void v) {
         super.onPostExecute(v);
-        MapPoints.addMapPoints(this.activity,mapboxMap);
-
-
     }
 }

@@ -1,5 +1,6 @@
 package com.example.s1636469.coinz;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -7,11 +8,19 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.Log;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
@@ -19,13 +28,17 @@ import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class MapPoints {
     public static List<Coin> coins = new ArrayList<Coin>();
     public static List<MarkerOptions> markers = new ArrayList<MarkerOptions>();
-    public static void addMapPoints(Context context, MapboxMap mapboxMap) {
+    public static void plotMapPoints(Context context, MapboxMap mapboxMap) {
         IconFactory iconFactory = IconFactory.getInstance(context);
         Icon ic;
         Drawable vectorDrawable = ResourcesCompat.getDrawable(context.getResources(), R.drawable.mapbox_marker_icon_default, null);
@@ -42,6 +55,64 @@ public class MapPoints {
             MarkerOptions mo = new MarkerOptions().position(pos).icon(ic);
             mapboxMap.addMarker(mo);
             MapPoints.markers.add(mo);
+        }
+    }
+    public static void addMapPoints(String file_string, Activity activity, MapboxMap mapboxMap, Location location) {
+        String TAG = "MAP_PLOTTER";
+
+        try {
+            MapPoints.coins = new ArrayList<Coin>();
+
+            assert(file_string != null);
+            assert(file_string.length() != 0);
+            assert(!file_string.equals("{}"));
+            JSONObject json = new JSONObject(file_string);
+            JSONArray points = json.getJSONArray("features");
+
+            // Get collected from database
+            FirebaseFirestore.setLoggingEnabled(false);
+            FirebaseFirestore database = FirebaseFirestore.getInstance();
+            FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
+                    .setPersistenceEnabled(true)
+                    .build();
+            database.setFirestoreSettings(settings);
+
+            final DocumentReference docRef = database.collection("users").document("initial");
+            docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    try {
+                        ArrayList<String> collected = (ArrayList<String>) task.getResult().getData().get("collected");
+                        for (int i = 0; i < points.length(); i++) {
+                            //Get Position of point and add marker
+                            JSONObject feature = points.getJSONObject(i);
+                            JSONObject geometery = feature.getJSONObject("geometry");
+                            JSONArray coords = geometery.getJSONArray("coordinates");
+
+                            //Add coin to the MapPoints object
+                            JSONObject props = feature.getJSONObject("properties");
+                            String id = (String) props.get("id");
+                            //if we have already collected the coin
+                            if (!collected.contains(id)){
+                                String currency = (String) props.get("currency");
+                                double value = Double.parseDouble((String) props.get("value"));
+                                Location x = new Location("A");
+                                x.setLatitude(coords.getDouble(1));
+                                x.setLongitude(coords.getDouble(0));
+                                MapPoints.coins.add(new Coin(id, currency, value, x));
+                            }
+                        }
+                        plotMapPoints(activity,mapboxMap);
+                        Log.d(TAG, "Added Coins to array");
+                        CoinSearcher coinSearcher = new CoinSearcher(activity, mapboxMap);
+                        coinSearcher.execute(location);
+                    } catch (JSONException e) {
+                        Log.e("ERROR", "error parsing json");
+                    }
+                }
+            });
+        } catch (JSONException e) {
+            Log.d(TAG,"GeoJSONGetter failed at post exectue");
         }
     }
 }

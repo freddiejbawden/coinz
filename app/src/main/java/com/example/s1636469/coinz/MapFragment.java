@@ -17,6 +17,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ServerTimestamp;
+import com.google.firebase.firestore.SetOptions;
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineListener;
 import com.mapbox.android.core.location.LocationEnginePriority;
@@ -31,6 +40,14 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin;
 import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode;
+
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.mapbox.mapboxsdk.Mapbox.getApplicationContext;
 
@@ -312,12 +329,50 @@ public class MapFragment extends Fragment implements LocationEngineListener {
             }
         });
     }
-
+    private void getMarkersFromServer() {
+        GeoJSONGetter getter = new GeoJSONGetter(getActivity(),mapboxMap,originLocation);
+        String url = String.format("http://homepages.inf.ed.ac.uk/stg/coinz/%s/coinzmap.geojson",Config.getGeoJSONURL());
+        getter.execute(url);
+    }
     private void plotGeoJSON() {
-        GeoJSONGetter getter = new GeoJSONGetter(getActivity(),mapboxMap,this.originLocation);
-        getter.execute("http://homepages.inf.ed.ac.uk/stg/coinz/2018/06/05/coinzmap.geojson");
 
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        //TODO: Sub in user name from here
+        DocumentReference dRef = firestore.collection("users").document("initial");
+        dRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                Map<String,Object> data = task.getResult().getData();
+                Date last_login = (Date) data.get("last_login");
+                Calendar last_login_cal = Calendar. getInstance();
+                last_login_cal.setTime(last_login);
+                // Check to purge
 
+                SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMdd");
+                if(!fmt.format(Calendar.getInstance().getTime()).equals(fmt.format(last_login))) {
+                    // purge
+                    HashMap<String, Object> toUpdate = new HashMap<String, Object>();
+                    toUpdate.put("collected", new ArrayList<String>());
+                    toUpdate.put("last_login",Calendar.getInstance().getTime());
+                    dRef.set(toUpdate, SetOptions.merge()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            Log.d("MARKERS","Day has changed since last login");
+                            getMarkersFromServer();
+                        }
+                    });
+                } else {
+                    Log.d("MARKERS","Day has not changed since last login");
+                    getMarkersFromServer();
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.w("STATUS","Failed",e);
+
+            }
+        });
     }
 
 }

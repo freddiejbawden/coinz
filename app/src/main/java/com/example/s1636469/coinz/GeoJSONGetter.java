@@ -1,6 +1,7 @@
 package com.example.s1636469.coinz;
 
 import android.app.Activity;
+import android.content.Context;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.renderscript.ScriptGroup;
@@ -26,22 +27,27 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+
+import static android.support.constraint.Constraints.TAG;
 
 public class GeoJSONGetter extends AsyncTask<String, Void, String> {
     static String out;
     private Activity activity;
     private MapboxMap mapboxMap;
     private Location location;
-
+    private static String TAG = "GeoJSONGetter";
 
     public GeoJSONGetter(Activity activity,MapboxMap mapboxMap, Location location) {
         this.activity = activity;
@@ -55,10 +61,10 @@ public class GeoJSONGetter extends AsyncTask<String, Void, String> {
     @Override
     protected String doInBackground(String... urls){
         try {
-            Log.d("STATUS","Starting download");
+            Log.d(TAG,"Starting download");
             return loadFileFromNetwork(urls[0]);
         } catch (IOException e) {
-            Log.e("STATUS", e.toString());
+            Log.e(TAG, e.toString());
             return "Unable to load content";
         }
     }
@@ -78,13 +84,13 @@ public class GeoJSONGetter extends AsyncTask<String, Void, String> {
             conn.setRequestMethod("GET");
             conn.setDoInput(true);
             conn.connect();
-            System.out.println(conn.getResponseCode());
+            Log.d(TAG,"Response Code: " + conn.getResponseCode());
             return conn.getInputStream();
         } catch (SocketTimeoutException e) {
-            Log.d("STATUS", "socket timed out");
+            Log.d(TAG, "socket timed out");
             return null;
         } catch (IOException e){
-            Log.d("STATUS","IOExpection");
+            Log.d(TAG,"IOExpection");
             return null;
         }
 
@@ -99,67 +105,15 @@ public class GeoJSONGetter extends AsyncTask<String, Void, String> {
 
     @Override
     protected  void onPostExecute(String result) {
-
         super.onPostExecute(result);
         if (result.equals("")) {
-            Log.d("STATUS", "readStream was blank");
-            Toast.makeText(this.activity,"Unable to get coin location data",Toast.LENGTH_LONG).show();
+            Log.d(TAG, "readStream was blank");
+            Toast.makeText(this.activity, "Unable to get coin location data", Toast.LENGTH_LONG).show();
             return;
         }
-        GeoJSONGetter.downloadComplete(result);
         assert (result != null);
+
         MapView mapView = (MapView) this.activity.findViewById(R.id.mapView);
-        try {
-            MapPoints.coins = new ArrayList<Coin>();
-            String s = GeoJSONGetter.out;
-            assert(s != null);
-            assert(s.length() != 0);
-            assert(!s.equals("{}"));
-            JSONObject json = new JSONObject(s);
-            JSONArray points = json.getJSONArray("features");
-
-            FirebaseFirestore.setLoggingEnabled(false);
-            FirebaseFirestore database = FirebaseFirestore.getInstance();
-            FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
-                    .setPersistenceEnabled(true)
-                    .build();
-            database.setFirestoreSettings(settings);
-
-            final DocumentReference docRef = database.collection("users").document("initial");
-            docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                    try {
-                        ArrayList<String> collected = (ArrayList<String>) task.getResult().getData().get("collected");
-                        for (int i = 0; i < points.length(); i++) {
-                            //Get Position of point and add marker
-                            JSONObject feature = points.getJSONObject(i);
-                            JSONObject geometery = feature.getJSONObject("geometry");
-                            JSONArray coords = geometery.getJSONArray("coordinates");
-
-                            //Add coin to the MapPoints object
-                            JSONObject props = feature.getJSONObject("properties");
-                            String id = (String) props.get("id");
-                            if (!collected.contains(id)){
-                                String currency = (String) props.get("currency");
-                                double value = Double.parseDouble((String) props.get("value"));
-                                Location x = new Location("A");
-                                x.setLatitude(coords.getDouble(1));
-                                x.setLongitude(coords.getDouble(0));
-                                MapPoints.coins.add(new Coin(id, currency, value, x));
-
-                            }
-                        }
-                        Log.d("STATUS", "Added Coins to array");
-                        CoinSearcher coinSearcher = new CoinSearcher(activity, mapboxMap);
-                        coinSearcher.execute(location);
-                    } catch (JSONException e) {
-                        Log.e("ERROR", "error parsing json");
-                    }
-                }
-            });
-        } catch (JSONException e) {
-            Log.d("STATUS","GeoJSONGetter failed at post exectue");
-        }
+        MapPoints.addMapPoints(result, activity, mapboxMap, location);
     }
 }
