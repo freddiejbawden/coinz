@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity
                 new ViewPager.OnPageChangeListener() {
                     @Override
                     public void onPageScrolled(int i, float v, int i1) {
-
+                        return;
                     }
 
                     @Override

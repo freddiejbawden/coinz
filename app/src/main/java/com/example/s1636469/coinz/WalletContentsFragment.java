@@ -51,11 +51,11 @@ public class WalletContentsFragment extends Fragment {
                     ArrayList<WalletCurrency> toAdd = new ArrayList<WalletCurrency>();
                     Log.d("STATUS",task.getResult().getData().toString());
                     Map<String, Object> docSnap = task.getResult().getData();
-                    for (String key : docSnap.keySet()) {
-                        if (!key.equals("friends")) {
-                            float value = Float.parseFloat((String) docSnap.get(key));
-                            toAdd.add(new WalletCurrency(key, value));
-                        }
+
+                    for (String cur : Config.currencies) {
+                        float value = Float.parseFloat((String) docSnap.get(cur));
+                        toAdd.add(new WalletCurrency(cur, value));
+
                     }
                     data.clear();
                     data.addAll(toAdd);

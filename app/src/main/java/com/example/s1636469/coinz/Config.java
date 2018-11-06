@@ -14,6 +14,7 @@ public class Config {
     public static final int DOLR_COLOR  = Color.GREEN;
     public static final int PENY_COLOR  = Color.CYAN;
     public static final int NEAR_COLOR  = Color.YELLOW;
+    public static final String[] currencies = new String[] {"PENY","DOLR","QUID","SHIL"};
     public static final String GEOJSON_LOCAL_FILE = "map_points.txt";
     public static String getGeoJSONURL() {
         Calendar calendar = Calendar.getInstance();
