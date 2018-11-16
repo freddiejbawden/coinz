@@ -58,6 +58,7 @@ public class FriendListFragment extends Fragment {
             StorageReference storageReference = storage.getReference();
             //TODO: feed url to async below
             StorageReference pathReference = storageReference.child(profile_url);
+            //TODO: SUPER COMPRESS THE IMAGES!
             final long ONE_MEGABYTE = 1024 * 1024;
             pathReference.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
                 @Override

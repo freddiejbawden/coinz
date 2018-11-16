@@ -33,7 +33,7 @@ public class CommunityFragment extends Fragment {
         SectionsPageAdapter adapter = new SectionsPageAdapter((getChildFragmentManager()));
         adapter.addFragment(new TradesFragment(), "Trades");
         adapter.addFragment(new LeaderboardFragment(), "Leaderboard");
-        adapter.addFragment(new FriendListFragment(), "Friends");
+        adapter.addFragment(new FriendContainerFragment(), "Friends");
         viewPager.setAdapter(adapter);
     }
 }

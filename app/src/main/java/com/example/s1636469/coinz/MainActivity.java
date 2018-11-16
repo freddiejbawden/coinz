@@ -57,15 +57,15 @@ public class MainActivity extends AppCompatActivity
                                 break;
                             case (R.id.action_bank):
                                 Log.d("UI UPDATE", "bank pressed");
-                                mViewPager.setCurrentItem(1);
+                                mViewPager.setCurrentItem(2);
                                 break;
                             case (R.id.action_community):
                                 Log.d("UI UPDATE", "community pressed");
-                                mViewPager.setCurrentItem(2);
-                                break;
-                            case (R.id.action_profile):
-                                Log.d("UI UPDATE", "profile pressed");
                                 mViewPager.setCurrentItem(3);
+                                break;
+                            case (R.id.action_wallet):
+                                Log.d("UI UPDATE", "profile pressed");
+                                mViewPager.setCurrentItem(1);
                                 break;
                         }
                         return true;                    }
@@ -102,9 +102,9 @@ public class MainActivity extends AppCompatActivity
     public void setupViewPager(ViewPager viewPager) {
         SectionsPageAdapter adapter = new SectionsPageAdapter((getSupportFragmentManager()));
         adapter.addFragment(new MapFragment(), "MapFragment");
+        adapter.addFragment(new WalletFragment(), "WalletFragment");
         adapter.addFragment(new BankFragment(), "BankFragment");
         adapter.addFragment(new CommunityFragment(), "CommunityFragment");
-        adapter.addFragment(new WalletFragment(), "WalletFragment");
         viewPager.setAdapter(adapter);
     }
 
