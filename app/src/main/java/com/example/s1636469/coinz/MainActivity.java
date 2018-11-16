@@ -13,11 +13,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 public class MainActivity extends AppCompatActivity
 {
     private SectionsPageAdapter mSecionsPageAdapter;
     private NoSwipingViewPager mViewPager;
     private MenuItem prevMenuItem;
+    private FirebaseAuth mAuth;
 
     private static final String TAG = "MainActivity";
 
@@ -32,6 +39,7 @@ public class MainActivity extends AppCompatActivity
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("username","test");
 
+        mAuth = FirebaseAuth.getInstance();
 
         mSecionsPageAdapter = new SectionsPageAdapter(getSupportFragmentManager());
         mViewPager = (NoSwipingViewPager) findViewById(R.id.container);
@@ -98,5 +106,26 @@ public class MainActivity extends AppCompatActivity
         adapter.addFragment(new CommunityFragment(), "CommunityFragment");
         adapter.addFragment(new WalletFragment(), "WalletFragment");
         viewPager.setAdapter(adapter);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            mAuth.signInAnonymously().addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+                @Override
+                public void onSuccess(AuthResult authResult) {
+                    Log.d("STATUS","signed in anon");
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.w("STATUS","Log in error", e);
+                }
+            });
+        } else {
+            Log.d("STATUS", user.toString() + " logged in");
+        }
     }
 }

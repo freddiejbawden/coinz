@@ -65,6 +65,8 @@ public class CoinSearcher extends AsyncTask<Location, Void, Void> {
                 Map<String, Object> data = task.getResult().getData();
                 ArrayList<String> collected = (ArrayList<String>) data.get("collected");
                 ArrayList<String> nearbyIds = new ArrayList<String>();
+                int prevSize = 0;
+                //TODO: Do benji magic here
                 for (int i = 0; i < MapPoints.coins.size(); i++) {
                     c = MapPoints.coins.get(i);
                     float dist = userLocation.distanceTo(c.getLocation()) ;
@@ -75,13 +77,14 @@ public class CoinSearcher extends AsyncTask<Location, Void, Void> {
                         String cur = nearbyCoin.getCurrency();
                         double new_val = Double.parseDouble((String) data.get(cur));
                         data.put(cur,new_val+"");
-
+                        prevSize = MapPoints.coins.size();
                         //add to collected list
                         nearbyIds.add(nearbyCoin.getId());
 
                         //Remove the marker from the map
                         mapboxMap.removeMarker(MapPoints.markers.get(i).getMarker());
                         MapPoints.coins.remove(i);
+
 
                     }
                 }

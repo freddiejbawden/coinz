@@ -31,9 +31,9 @@ public class CommunityFragment extends Fragment {
     }
     public void setupViewPager(ViewPager viewPager) {
         SectionsPageAdapter adapter = new SectionsPageAdapter((getChildFragmentManager()));
-        adapter.addFragment(new FriendsFragment(), "Pals");
-        adapter.addFragment(new LeaderboardFragment(), "Leaderboard");
         adapter.addFragment(new TradesFragment(), "Trades");
+        adapter.addFragment(new LeaderboardFragment(), "Leaderboard");
+        adapter.addFragment(new FriendListFragment(), "Friends");
         viewPager.setAdapter(adapter);
     }
 }

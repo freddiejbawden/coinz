@@ -34,7 +34,7 @@
                                           <PersistentState>
                                             <option name="values">
                                               <map>
-                                                <entry key="url" value="jar:file:/opt/android-studio/3.14/plugins/android/lib/android.jar!/images/material_design_icons/action/ic_account_balance_black_24dp.xml" />
+                                                <entry key="url" value="jar:file:/opt/android-studio/3.14/plugins/android/lib/android.jar!/images/material_design_icons/content/ic_add_black_24dp.xml" />
                                               </map>
                                             </option>
                                           </PersistentState>
@@ -55,8 +55,8 @@
                                   </option>
                                   <option name="values">
                                     <map>
-                                      <entry key="imageAsset" value="$USER_HOME$/Desktop/yellow_marker.png" />
-                                      <entry key="outputName" value="ic_bank" />
+                                      <entry key="imageAsset" value="$USER_HOME$/Desktop/Profile-icon-9.png" />
+                                      <entry key="outputName" value="add" />
                                       <entry key="themeColor" value="e5c303" />
                                     </map>
                                   </option>

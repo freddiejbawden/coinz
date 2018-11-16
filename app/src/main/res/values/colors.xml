@@ -2,7 +2,7 @@
 <resources>
     <color name="colorPrimary">#ffb300</color>
     <color name="colorPrimaryDark">#c68400</color>
-    <color name="colorPrimaryLight">#ffe54c</color>
+    <color name="colorPrimaryLight">#ffffff</color>
 
     <color name="colorAccent">#ffffff</color>
 
@@ -14,4 +14,5 @@
     <color name="colorTrendUp">#38c153</color>
     <color name="colorTrendDown">#c13c38</color>
     <color name="tabSelectedIndicator">#fcfcfc</color>
+    <color name="fab_fill">#f0f0f0</color>
 </resources>

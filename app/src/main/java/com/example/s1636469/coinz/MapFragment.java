@@ -62,7 +62,7 @@ public class MapFragment extends Fragment implements LocationEngineListener {
     private View view;
     private Context context;
 
-
+    //TODO: Fix permissions get crash
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
