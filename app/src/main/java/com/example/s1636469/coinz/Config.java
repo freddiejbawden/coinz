@@ -8,6 +8,7 @@ import java.util.Calendar;
 
 public class Config {
     public static final int REQUEST_GPS = 1;
+    public static final int REQUEST_PROFILE = 1;
     public static final double distanceForCollection = 25;
     public static final int SHIL_COLOR = Color.RED;
     public static final int QUID_COLOR = Color.BLUE;

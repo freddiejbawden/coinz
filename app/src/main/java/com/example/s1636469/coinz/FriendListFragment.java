@@ -1,45 +1,55 @@
 package com.example.s1636469.coinz;
 
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
+
+import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP;
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
+import static android.content.Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED;
 
 
 public class FriendListFragment extends Fragment {
+    public static Bundle pass_to_profile;
     private View rootView;
     private RecyclerView mRecyclerView;
     public FriendListAdapter mFriendAdapter;
     private ArrayList<FriendsInfo> data = new ArrayList<FriendsInfo>();
     private String TAG = "FriendsListFragment";
 
-    public void getImageRecursive(Object o_friends, ArrayList<FriendsInfo> toAdd) {
+    public void getImageRecursive(Object o_friends, ArrayList<FriendsInfo> toAdd, Context c) {
         ArrayList<Object> friends = (ArrayList<Object>) o_friends;
         if (friends.isEmpty()) {
             Log.d("STATUS","Empty");
@@ -65,25 +75,32 @@ public class FriendListFragment extends Fragment {
                 public void onSuccess(byte[] bytes) {
                     //Data for image is retuned
                     ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
+                    Bitmap bitmap;
                     if (inputStream != null) {
-                        Log.d("STATUS","image is not null");
-                        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                        toAdd.add(new FriendsInfo(profile_name, bitmap));
-                        friends.remove(0);
-                        getImageRecursive(friends, toAdd);
+                        bitmap = BitmapFactory.decodeStream(inputStream);
+                    } else {
+                        Log.w("STATUS","inputStream is null");
+                        bitmap = BitmapFactory.decodeResource(c.getResources(), R.drawable.blank_profile);
                     }
-                    Log.w("STATUS","Bitmap is null");
+                    toAdd.add(new FriendsInfo(profile_name, bitmap));
+                    friends.remove(0);
+                    getImageRecursive(friends, toAdd,c);
+
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    //return default image
+                    Log.e("Friends", "Cannot get image",e);
+                    Bitmap bitmap = BitmapFactory.decodeResource(c.getResources(), R.drawable.blank_profile);
+                    toAdd.add(new FriendsInfo(profile_name, bitmap));
+                    friends.remove(0);
+                    getImageRecursive(friends, toAdd,c);
                 }
             });
         }
     }
 
-    public void getMessagePreviews(String username) {
+    public void getFriends(String username) {
         FirebaseFirestore.setLoggingEnabled(false);
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
@@ -92,14 +109,14 @@ public class FriendListFragment extends Fragment {
         database.setFirestoreSettings(settings);
 
         ArrayList<FriendsInfo> toAdd = new ArrayList<>();
-
+        Context c = this.getContext();
         final DocumentReference docRef = database.collection("users").document(username);
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if (task.isSuccessful()) {
                     HashMap<String, Object> profile = (HashMap<String, Object>) task.getResult().getData();
-                    getImageRecursive(profile.get("friends"), new ArrayList<FriendsInfo>());
+                    getImageRecursive(profile.get("friends"), new ArrayList<FriendsInfo>(),c);
                 }
             }
         });
@@ -118,9 +135,70 @@ public class FriendListFragment extends Fragment {
         mFriendAdapter = new FriendListAdapter(getContext(),data);
         // 4. set adapter
         mRecyclerView.setAdapter(mFriendAdapter);
+
+        setUpListeners();
         // TODO: Get from uname storage
-        getMessagePreviews("initial");
+        getFriends("initial");
         Log.d(TAG,"getting message");
         return rootView;
+    }
+
+    private void setUpListeners() {
+        mRecyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+            @Override
+            public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
+                //Disable item
+                View item = mRecyclerView.findChildViewUnder(motionEvent.getX(),motionEvent.getY());
+                item.setEnabled(false);
+
+                int position = mRecyclerView.getChildLayoutPosition(item);
+                FirebaseFirestore database = FirebaseFirestore.getInstance();
+                FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
+                        .setPersistenceEnabled(true)
+                        .build();
+                database.setFirestoreSettings(settings);
+                FriendsInfo toDisplay = data.get(position);
+
+                DocumentReference documentReference = database.collection("users").document(toDisplay.getName().toLowerCase());
+                documentReference.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if (documentSnapshot.getData() != null) {
+                            Map<String, Object> details = documentSnapshot.getData();
+                            HashMap<String, String> curs = new HashMap<String,String>();
+                            for (String cur : Config.currencies) {
+                                curs.put(cur,(String) details.get(cur));
+                            }
+                            curs.put("GOLD",(String) details.get("GOLD"));
+                            Date last_log = (Date) details.get("last_login");
+
+                            Bundle bundle = new Bundle();
+                            bundle.putParcelable("img",toDisplay.getImg());
+                            bundle.putSerializable("date",(Date) details.get("last_login"));
+                            bundle.putString("name",toDisplay.getName());
+                            bundle.putSerializable("currencies", curs);
+                            pass_to_profile = bundle;
+                            System.out.println(getParentFragment().getActivity());
+                            Intent i = new Intent(item.getContext(), ProfileActivity.class);
+                            i.setFlags(FLAG_ACTIVITY_NEW_TASK|FLAG_ACTIVITY_CLEAR_TOP|FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+                            startActivity(i);
+                        } else {
+                            Toast.makeText(getContext(), "Cannot find user! Please try again later",Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+                return true;
+            }
+
+            @Override
+            public void onTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
+
+            }
+
+            @Override
+            public void onRequestDisallowInterceptTouchEvent(boolean b) {
+
+            }
+        });
     }
 }

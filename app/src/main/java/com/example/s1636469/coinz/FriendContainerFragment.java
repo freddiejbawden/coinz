@@ -33,7 +33,7 @@ public class FriendContainerFragment extends Fragment {
         SectionsPageAdapter adapter = new SectionsPageAdapter((getChildFragmentManager()));
         adapter.addFragment(new FriendListFragment(),"List");
         //TODO: make search fragement
-        adapter.addFragment(new TradesFragment(),"Search");
+        adapter.addFragment(new SearchFriendsFragment(),"Search");
         viewPager.setAdapter(adapter);
     }
     private void setupSearchBar(View v) {

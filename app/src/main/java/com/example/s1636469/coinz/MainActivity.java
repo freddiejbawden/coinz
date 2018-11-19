@@ -8,6 +8,7 @@ import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomNavigationView;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -45,6 +46,7 @@ public class MainActivity extends AppCompatActivity
         mViewPager = (NoSwipingViewPager) findViewById(R.id.container);
         setupViewPager(mViewPager);
 
+        //Populate Bottom Naviagation menu
         BottomNavigationView bnv = (BottomNavigationView) findViewById(R.id.bottomNavigationView);
         bnv.setOnNavigationItemSelectedListener(
                 new BottomNavigationView.OnNavigationItemSelectedListener() {

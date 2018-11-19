@@ -284,8 +284,8 @@ public class MapFragment extends Fragment implements LocationEngineListener {
         super.onLowMemory();
         mapView.onLowMemory();
     }
-    @SuppressWarnings( {"MissingPermission"})
 
+    @SuppressWarnings( {"MissingPermission"})
     @Override
     public void onConnected() {
         Log.d("STATUS","Location Engine Connected");
