@@ -7,12 +7,15 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
-public class TradesFragment extends Fragment {
+public class TradesContainerFragment extends Fragment {
 
     @Override
     @NonNull
     public View onCreateView(LayoutInflater inflater, @NonNull ViewGroup container, @NonNull Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_trades,container,false);
     }
+
 }

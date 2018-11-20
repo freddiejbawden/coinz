@@ -29,6 +29,7 @@ public class FriendContainerFragment extends Fragment {
         setupSearchBar(view);
         return view;
     }
+
     public void setupViewPager(ViewPager viewPager) {
         SectionsPageAdapter adapter = new SectionsPageAdapter((getChildFragmentManager()));
         adapter.addFragment(new FriendListFragment(),"List");
@@ -36,6 +37,7 @@ public class FriendContainerFragment extends Fragment {
         adapter.addFragment(new SearchFriendsFragment(),"Search");
         viewPager.setAdapter(adapter);
     }
+
     private void setupSearchBar(View v) {
         SearchView searchView = v.findViewById(R.id.searchView);
         searchView.setOnSearchClickListener(new View.OnClickListener() {
@@ -51,20 +53,6 @@ public class FriendContainerFragment extends Fragment {
                 return false;
             }
         });
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                Log.d("STATUS","Search");
-                //TODO: Send a search request
-                return false;
-            }
 
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                //TODO: filter
-                Log.d("STATUS","update");
-                return false;
-            }
-        });
     }
 }

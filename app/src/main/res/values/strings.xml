@@ -5,4 +5,12 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_profile">ProfileActivity</string>
+
+    <string-array name="currencies">
+        <item>SHIL</item>
+        <item>DOLR</item>
+        <item>QUID</item>
+        <item>PENY</item>
+    </string-array>
+
 </resources>

@@ -149,6 +149,9 @@ public class FriendListFragment extends Fragment {
             public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
                 //Disable item
                 View item = mRecyclerView.findChildViewUnder(motionEvent.getX(),motionEvent.getY());
+                if (item == null) {
+                    return false;
+                }
                 item.setEnabled(false);
 
                 int position = mRecyclerView.getChildLayoutPosition(item);
@@ -181,6 +184,7 @@ public class FriendListFragment extends Fragment {
                             System.out.println(getParentFragment().getActivity());
                             Intent i = new Intent(item.getContext(), ProfileActivity.class);
                             i.setFlags(FLAG_ACTIVITY_NEW_TASK|FLAG_ACTIVITY_CLEAR_TOP|FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+                            i.putExtra("already_friends",true);
                             startActivity(i);
                         } else {
                             Toast.makeText(getContext(), "Cannot find user! Please try again later",Toast.LENGTH_SHORT).show();
@@ -200,5 +204,12 @@ public class FriendListFragment extends Fragment {
 
             }
         });
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+       getFriends("initial");
     }
 }
