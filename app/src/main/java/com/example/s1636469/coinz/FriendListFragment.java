@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -28,9 +29,11 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageException;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -49,79 +52,7 @@ public class FriendListFragment extends Fragment {
     private ArrayList<FriendsInfo> data = new ArrayList<FriendsInfo>();
     private String TAG = "FriendsListFragment";
 
-    public void getImageRecursive(Object o_friends, ArrayList<FriendsInfo> toAdd, Context c) {
-        ArrayList<Object> friends = (ArrayList<Object>) o_friends;
-        if (friends.isEmpty()) {
-            Log.d("STATUS","Empty");
-            data.clear();
-            data.addAll(toAdd);
-            mFriendAdapter.notifyDataSetChanged();
-            Log.d(TAG,"Changing adapter");
-            return;
-        } else {
-            Log.d("STATUS","It");
-            HashMap<String, Object> friend_map = (HashMap<String, Object>) friends.get(0);
-            Log.d("STATUS",friend_map.toString());
-            String profile_url = (String) friend_map.get("profile_url");
-            String profile_name = (String) friend_map.get("name");
-            FirebaseStorage storage = FirebaseStorage.getInstance();
-            StorageReference storageReference = storage.getReference();
-            //TODO: feed url to async below
-            StorageReference pathReference = storageReference.child(profile_url);
-            //TODO: SUPER COMPRESS THE IMAGES!
-            final long ONE_MEGABYTE = 1024 * 1024;
-            pathReference.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
-                @Override
-                public void onSuccess(byte[] bytes) {
-                    //Data for image is retuned
-                    ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
-                    Bitmap bitmap;
-                    if (inputStream != null) {
-                        bitmap = BitmapFactory.decodeStream(inputStream);
-                    } else {
-                        Log.w("STATUS","inputStream is null");
-                        bitmap = BitmapFactory.decodeResource(c.getResources(), R.drawable.blank_profile);
-                    }
-                    toAdd.add(new FriendsInfo(profile_name, bitmap));
-                    friends.remove(0);
-                    getImageRecursive(friends, toAdd,c);
 
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.e("Friends", "Cannot get image",e);
-                    Bitmap bitmap = BitmapFactory.decodeResource(c.getResources(), R.drawable.blank_profile);
-                    toAdd.add(new FriendsInfo(profile_name, bitmap));
-                    friends.remove(0);
-                    getImageRecursive(friends, toAdd,c);
-                }
-            });
-        }
-    }
-
-    public void getFriends(String username) {
-        FirebaseFirestore.setLoggingEnabled(false);
-        FirebaseFirestore database = FirebaseFirestore.getInstance();
-        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
-                .setPersistenceEnabled(true)
-                .build();
-        database.setFirestoreSettings(settings);
-
-        ArrayList<FriendsInfo> toAdd = new ArrayList<>();
-        Context c = this.getContext();
-        final DocumentReference docRef = database.collection("users").document(username);
-        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    HashMap<String, Object> profile = (HashMap<String, Object>) task.getResult().getData();
-                    getImageRecursive(profile.get("friends"), new ArrayList<FriendsInfo>(),c);
-                }
-            }
-        });
-
-    }
     @Override
     @NonNull
     public View onCreateView(LayoutInflater inflater, @NonNull ViewGroup container, @NonNull Bundle savedInstanceState) {
@@ -141,6 +72,12 @@ public class FriendListFragment extends Fragment {
         getFriends("initial");
         Log.d(TAG,"getting message");
         return rootView;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        getFriends("initial");
     }
 
     private void setUpListeners() {
@@ -206,10 +143,87 @@ public class FriendListFragment extends Fragment {
         });
     }
 
+    public void getImageRecursive(Object o_friends, ArrayList<FriendsInfo> toAdd, Context c) {
+        ArrayList<Object> friends = (ArrayList<Object>) o_friends;
+        if (friends.isEmpty()) {
 
-    @Override
-    public void onResume() {
-        super.onResume();
-       getFriends("initial");
+            Log.d("STATUS","Empty");
+            data.clear();
+            data.addAll(toAdd);
+            mFriendAdapter.notifyDataSetChanged();
+            Log.d(TAG,"Changing adapter");
+            return;
+
+        } else {
+
+            Log.d("STATUS","It");
+            HashMap<String, Object> friend_map = (HashMap<String, Object>) friends.get(0);
+            Log.d("STATUS",friend_map.toString());
+            String profile_name = (String) friend_map.get("name");
+            String profile_url = (String) friend_map.get("profile_url");
+
+            FirebaseStorage storage = FirebaseStorage.getInstance();
+            StorageReference storageReference = storage.getReference();
+            //TODO: feed url to async below
+
+            StorageReference pathReference = storageReference.child(profile_url);
+
+            //TODO: SUPER COMPRESS THE IMAGES!
+            final long ONE_MEGABYTE = 1024 * 1024;
+            pathReference.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                @Override
+                public void onSuccess(byte[] bytes) {
+                    //Data for image is retuned
+                    ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
+                    Bitmap bitmap;
+                    if (inputStream != null) {
+                        bitmap = BitmapFactory.decodeStream(inputStream);
+                    } else {
+                        Log.w("STATUS","inputStream is null");
+                        bitmap = BitmapFactory.decodeResource(c.getResources(), R.drawable.blank_profile);
+                    }
+                    toAdd.add(new FriendsInfo(profile_name, bitmap));
+                    friends.remove(0);
+                    getImageRecursive(friends, toAdd,c);
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.d(TAG, "Failed to get image");
+                    int errorCode = ((StorageException) e).getErrorCode();
+
+                    String profile_name = (String) friend_map.get("name");
+                    Bitmap bitmap = BitmapFactory.decodeResource(c.getResources(), R.drawable.blank_profile);
+                    toAdd.add(new FriendsInfo(profile_name, bitmap));
+                    friends.remove(0);
+                    getImageRecursive(friends, toAdd,c);
+                }
+            });
+
+        }
     }
+
+    public void getFriends(String username) {
+        FirebaseFirestore.setLoggingEnabled(false);
+        FirebaseFirestore database = FirebaseFirestore.getInstance();
+        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
+                .setPersistenceEnabled(true)
+                .build();
+        database.setFirestoreSettings(settings);
+
+        ArrayList<FriendsInfo> toAdd = new ArrayList<>();
+        Context c = this.getContext();
+        final DocumentReference docRef = database.collection("users").document(username);
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    HashMap<String, Object> profile = (HashMap<String, Object>) task.getResult().getData();
+                    getImageRecursive(profile.get("friends"), new ArrayList<FriendsInfo>(),c);
+                }
+            }
+        });
+
+    }
+
 }

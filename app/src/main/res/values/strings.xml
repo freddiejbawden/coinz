@@ -12,5 +12,6 @@
         <item>QUID</item>
         <item>PENY</item>
     </string-array>
+    <string name="title_activity_send_trade">SendTradeActivity</string>
 
 </resources>

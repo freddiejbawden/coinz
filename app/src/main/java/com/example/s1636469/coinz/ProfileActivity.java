@@ -89,8 +89,9 @@ public class ProfileActivity extends Activity {
                 Map<String, Object> data = (Map<String, Object>) documentSnapshot.getData();
                 if (data != null) {
                     String profile_url = (String) data.get("profile_url");
+                    String profile_name = (String) data.get("username");
                     HashMap<String, Object> array_element = new HashMap<>();
-                    array_element.put("name","robert");
+                    array_element.put("name",profile_name);
                     array_element.put("profile_url", profile_url);
                     user_ref.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                         @Override

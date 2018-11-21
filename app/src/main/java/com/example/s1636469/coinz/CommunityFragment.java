@@ -29,7 +29,7 @@ public class CommunityFragment extends Fragment {
     }
     public void setupViewPager(ViewPager viewPager) {
         SectionsPageAdapter adapter = new SectionsPageAdapter((getChildFragmentManager()));
-        adapter.addFragment(new TradesContainerFragment(), "Trades");
+        adapter.addFragment(new TradesFragment(), "Trades");
         adapter.addFragment(new LeaderboardFragment(), "Leaderboard");
         adapter.addFragment(new FriendContainerFragment(), "Friends");
         viewPager.setAdapter(adapter);
