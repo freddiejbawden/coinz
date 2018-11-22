@@ -31,7 +31,12 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        //TODO: Splash screen pull initial values to prevent start up lag.
         super.onCreate(savedInstanceState);
+        SharedPreferences sharedPref= getSharedPreferences("bank", 0);
+        SharedPreferences.Editor ed = sharedPref.edit();
+        ed.clear();
+        ed.commit();
         setContentView(R.layout.activity_main);
         Log.d(TAG, "onCreate: Starting");
 

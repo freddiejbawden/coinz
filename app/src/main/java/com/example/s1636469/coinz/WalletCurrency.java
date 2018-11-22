@@ -2,9 +2,9 @@ package com.example.s1636469.coinz;
 
 public class WalletCurrency {
     private String type;
-    private float value;
+    private Double value;
 
-    public WalletCurrency(String type, float value) {
+    public WalletCurrency(String type, Double value) {
         this.type = type;
         this.value = value;
     }
@@ -14,7 +14,7 @@ public class WalletCurrency {
     }
 
 
-    public float getValue() {
+    public Double getValue() {
         return value;
     }
 

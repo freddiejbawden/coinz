@@ -1,7 +1,5 @@
 package com.example.s1636469.coinz;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -16,16 +14,12 @@ import android.view.ViewGroup;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Map;
 
 public class WalletContentsFragment extends Fragment {
@@ -33,6 +27,7 @@ public class WalletContentsFragment extends Fragment {
     private RecyclerView mRecyclerView;
     private WalletContentsAdapter mAdapter;
     private ArrayList<WalletCurrency> data = new ArrayList<WalletCurrency>();
+    private String TAG = "WalletContents";
 
     protected void getWalletData(String username) {
         FirebaseFirestore.setLoggingEnabled(false);
@@ -53,10 +48,16 @@ public class WalletContentsFragment extends Fragment {
                     Map<String, Object> docSnap = task.getResult().getData();
 
                     for (String cur : Config.currencies) {
-                        float value = Float.parseFloat((String) docSnap.get(cur));
-                        toAdd.add(new WalletCurrency(cur, value));
+                        Double value;
+                        try {
+                            value = (Double) docSnap.get(cur);
+                        } catch ( ClassCastException e) {
+                            value = ((Long) docSnap.get(cur)).doubleValue();
+                        }
 
+                        toAdd.add(new WalletCurrency(cur, value));
                     }
+
                     data.clear();
                     data.addAll(toAdd);
                     mAdapter.notifyDataSetChanged();
@@ -76,7 +77,7 @@ public class WalletContentsFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        rootView = inflater.inflate(R.layout.currency_recycler, container, false);
+        rootView = inflater.inflate(R.layout.wallet_contents_recycler, container, false);
         // 1. get a reference to recyclerView
         mRecyclerView= (RecyclerView) rootView.findViewById(R.id.currency_recycler);
 

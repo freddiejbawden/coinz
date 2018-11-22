@@ -34,7 +34,7 @@
                                           <PersistentState>
                                             <option name="values">
                                               <map>
-                                                <entry key="url" value="jar:file:/opt/android-studio/3.14/plugins/android/lib/android.jar!/images/material_design_icons/content/ic_send_black_24dp.xml" />
+                                                <entry key="url" value="jar:file:/opt/android-studio/3.14/plugins/android/lib/android.jar!/images/material_design_icons/content/ic_filter_list_black_24dp.xml" />
                                               </map>
                                             </option>
                                           </PersistentState>
@@ -56,8 +56,7 @@
                                   <option name="values">
                                     <map>
                                       <entry key="imageAsset" value="$USER_HOME$/Desktop/Profile-icon-9.png" />
-                                      <entry key="outputName" value="send_trade" />
-                                      <entry key="theme" value="CUSTOM" />
+                                      <entry key="outputName" value="filter_list" />
                                       <entry key="themeColor" value="ffffff" />
                                     </map>
                                   </option>

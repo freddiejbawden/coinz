@@ -43,7 +43,7 @@ public class ProfileActivity extends Activity {
         if (FriendListFragment.pass_to_profile != null ){
             String name = (String) FriendListFragment.pass_to_profile.get("name");
             Bitmap img = (Bitmap) FriendListFragment.pass_to_profile.get("img");
-            HashMap<String, String> curs = (HashMap<String, String>) FriendListFragment.pass_to_profile.get("currencies");
+            HashMap<String, Double> curs = (HashMap<String, Double>) FriendListFragment.pass_to_profile.get("currencies");
 
             //TODO: get higher res img
             CircularImageView profile_img = (CircularImageView) findViewById(R.id.profile_img);
@@ -55,8 +55,8 @@ public class ProfileActivity extends Activity {
             LinearLayout ll = (LinearLayout) findViewById(R.id.currency_amount_filler);
             for (String k : curs.keySet()) {
                 TextView tv = new TextView(this);
-                Log.d(TAG,curs.get(k));
-                tv.setText(k + ": " + curs.get(k));
+                Log.d(TAG,((Double)curs.get(k)).toString());
+                tv.setText(k + ": " + curs.get(k).toString());
                 tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                 tv.setTextSize(20f);
                 ll.addView(tv);

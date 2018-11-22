@@ -18,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -105,11 +106,21 @@ public class FriendListFragment extends Fragment {
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
                         if (documentSnapshot.getData() != null) {
                             Map<String, Object> details = documentSnapshot.getData();
-                            HashMap<String, String> curs = new HashMap<String,String>();
+                            HashMap<String, Double> curs = new HashMap<String,Double>();
                             for (String cur : Config.currencies) {
-                                curs.put(cur,(String) details.get(cur));
+                                try {
+                                    curs.put(cur, (Double) details.get(cur));
+                                } catch (ClassCastException e) {
+                                    curs.put(cur, ((Long) details.get(cur)).doubleValue());
+                                }
+
                             }
-                            curs.put("GOLD",(String) details.get("GOLD"));
+                            try {
+                                curs.put("GOLD",(Double) details.get("GOLD"));
+                            } catch (ClassCastException e) {
+                                curs.put("GOLD",((Long)  details.get("GOLD")).doubleValue());
+                            }
+
                             Date last_log = (Date) details.get("last_login");
 
                             Bundle bundle = new Bundle();

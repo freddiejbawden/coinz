@@ -18,4 +18,6 @@ public class FriendsInfo {
     public Bitmap getImg() {
         return img;
     }
+
+
 }

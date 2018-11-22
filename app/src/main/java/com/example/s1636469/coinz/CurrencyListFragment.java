@@ -12,19 +12,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.EventListener;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class CurrencyListFragment extends Fragment{
@@ -107,7 +102,7 @@ public class CurrencyListFragment extends Fragment{
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        rootView = inflater.inflate(R.layout.currency_recycler, container, false);
+        rootView = inflater.inflate(R.layout.wallet_contents_recycler, container, false);
         // 1. get a reference to recyclerView
         mRecyclerView= (RecyclerView) rootView.findViewById(R.id.currency_recycler);
 
