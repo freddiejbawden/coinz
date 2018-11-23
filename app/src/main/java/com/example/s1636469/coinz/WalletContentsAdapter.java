@@ -34,7 +34,7 @@ public class WalletContentsAdapter extends  RecyclerView.Adapter<WalletContentsA
 
         WalletCurrency currencyInfo = mData.get(position);
         holder.walletTypeView.setText(currencyInfo.getType());
-        holder.walletValueView.setText(""+ currencyInfo.getValue());
+        holder.walletValueView.setText(""+ Config.round(currencyInfo.getValue(),Config.CUR_VALUE_DP));
     }
 
     // total number of rows

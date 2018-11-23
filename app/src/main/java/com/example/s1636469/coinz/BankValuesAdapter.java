@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -31,26 +32,27 @@ public class BankValuesAdapter extends RecyclerView.Adapter<BankValuesAdapter.Vi
         return new BankValuesAdapter.ViewHolder(view);
     }
 
+
     // binds the data to the TextView in each row
     @Override
     public void onBindViewHolder(BankValuesAdapter.ViewHolder holder, int position) {
         Log.d("BANK ADAPTER",mData.toString());
         BankInfo bankInfo = mData.get(position);
         holder.currencyTypeTextView.setText(bankInfo.getCurrency());
-        holder.currencyValueTextView.setText(""+bankInfo.getValue());
-        if (bankInfo.getChange() < 1e-3 || bankInfo.getChange() > -1e-3) {
+        holder.currencyValueTextView.setText(""+Config.round(bankInfo.getValue(),Config.CUR_VALUE_DP));
+        if (bankInfo.getChange() < 1e-3 && bankInfo.getChange() > -1e-3) {
             holder.currencyValueChangeTextView.setText("0");
+            holder.currencyValueChangeTextView.setTextColor(c.getColor(R.color.colorTrendUnknown));
+            Toast.makeText(this.c, "Unable to calculate coin values, please try again later",Toast.LENGTH_LONG).show();
         } else {
-            holder.currencyValueChangeTextView.setText(""+bankInfo.getChange());
-        }
-
-        if (bankInfo.getChange() >= 0) {
-            holder.currencyValueChangeTextView.setTextColor(c.getColor(R.color.colorTrendUp));
-        } else {
-            holder.currencyValueChangeTextView.setTextColor(c.getColor(R.color.colorTrendDown));
+            holder.currencyValueChangeTextView.setText(""+Config.round(bankInfo.getChange(),Config.CUR_VALUE_DP));
+            if (bankInfo.getChange() >= 0) {
+                holder.currencyValueChangeTextView.setTextColor(c.getColor(R.color.colorTrendUp));
+            } else {
+                holder.currencyValueChangeTextView.setTextColor(c.getColor(R.color.colorTrendDown));
+            }
         }
     }
-
     // total number of rows
     @Override
     public int getItemCount() {

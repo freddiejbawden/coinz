@@ -16,7 +16,9 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 
 import java.util.ArrayList;
@@ -28,6 +30,27 @@ public class WalletContentsFragment extends Fragment {
     private WalletContentsAdapter mAdapter;
     private ArrayList<WalletCurrency> data = new ArrayList<WalletCurrency>();
     private String TAG = "WalletContents";
+
+
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        rootView = inflater.inflate(R.layout.wallet_contents_recycler, container, false);
+        // 1. get a reference to recyclerView
+        mRecyclerView= (RecyclerView) rootView.findViewById(R.id.currency_recycler);
+
+        // 2. set layoutManger
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        mAdapter = new WalletContentsAdapter(getContext(),data);
+        // 4. set adapter
+        mRecyclerView.setAdapter(mAdapter);
+        //TODO: set active user
+        getWalletData("initial");
+        setUpListeners();
+        return rootView;
+    }
 
     protected void getWalletData(String username) {
         FirebaseFirestore.setLoggingEnabled(false);
@@ -43,24 +66,7 @@ public class WalletContentsFragment extends Fragment {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if (task.getResult().exists()) {
-                    ArrayList<WalletCurrency> toAdd = new ArrayList<WalletCurrency>();
-                    Log.d("STATUS",task.getResult().getData().toString());
-                    Map<String, Object> docSnap = task.getResult().getData();
-
-                    for (String cur : Config.currencies) {
-                        Double value;
-                        try {
-                            value = (Double) docSnap.get(cur);
-                        } catch ( ClassCastException e) {
-                            value = ((Long) docSnap.get(cur)).doubleValue();
-                        }
-
-                        toAdd.add(new WalletCurrency(cur, value));
-                    }
-
-                    data.clear();
-                    data.addAll(toAdd);
-                    mAdapter.notifyDataSetChanged();
+                    getWalletFromSnapshot(task.getResult());
                 } else {
                     Log.w("STATUS", "Document does not exist!");
                 }
@@ -74,20 +80,37 @@ public class WalletContentsFragment extends Fragment {
         });
     }
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        rootView = inflater.inflate(R.layout.wallet_contents_recycler, container, false);
-        // 1. get a reference to recyclerView
-        mRecyclerView= (RecyclerView) rootView.findViewById(R.id.currency_recycler);
 
-        // 2. set layoutManger
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+    private void getWalletFromSnapshot(DocumentSnapshot documentSnapshot) {
+        ArrayList<WalletCurrency> toAdd = new ArrayList<WalletCurrency>();
+        Log.d("STATUS",documentSnapshot.getData().toString());
+        Map<String, Object> docSnap = documentSnapshot.getData();
 
-        mAdapter = new WalletContentsAdapter(getContext(),data);
-        // 4. set adapter
-        mRecyclerView.setAdapter(mAdapter);
-        getWalletData("initial");
-        return rootView;
+        for (String cur : Config.currencies) {
+            Double value;
+            try {
+                value = (Double) docSnap.get(cur);
+            } catch ( ClassCastException e) {
+                value = ((Long) docSnap.get(cur)).doubleValue();
+            }
+
+            toAdd.add(new WalletCurrency(cur, value));
+        }
+
+        data.clear();
+        data.addAll(toAdd);
+        mAdapter.notifyDataSetChanged();
+    }
+
+    private void setUpListeners() {
+        FirebaseFirestore database = FirebaseFirestore.getInstance();
+        //TODO: set active user
+        DocumentReference dRef = database.collection("users").document("initial");
+        dRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@javax.annotation.Nullable DocumentSnapshot documentSnapshot, @javax.annotation.Nullable FirebaseFirestoreException e) {
+                getWalletFromSnapshot(documentSnapshot);
+            }
+        });
     }
 }

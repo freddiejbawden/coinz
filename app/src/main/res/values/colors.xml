@@ -13,6 +13,8 @@
 
     <color name="colorTrendUp">#38c153</color>
     <color name="colorTrendDown">#c13c38</color>
+    <color name="colorTrendUnknown">#c4c4c0</color>
+
     <color name="tabSelectedIndicator">#fcfcfc</color>
     <color name="fab_fill">#f0f0f0</color>
 </resources>

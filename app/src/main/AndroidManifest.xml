@@ -28,7 +28,7 @@
         <activity
             android:name=".SendTradeActivity"
             android:label="@string/title_activity_send_trade"
-            android:windowSoftInputMode="adjustResize"></activity>
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>
