@@ -5,12 +5,15 @@ import android.util.Log;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
 
 public class Config {
+
+    public static final int PICK_IMAGE = 1;
+
     public static final double TOTAL_COINS_PER_DAY = 25;
     public static final int CUR_VALUE_DP = 4;
     public static final int REQUEST_GPS = 1;
-    public static final int REQUEST_PROFILE = 1;
     public static final double distanceForCollection = 25;
     public static final int SHIL_COLOR = Color.RED;
     public static final int QUID_COLOR = Color.BLUE;
@@ -19,6 +22,12 @@ public class Config {
     public static final int NEAR_COLOR  = Color.YELLOW;
     public static final String[] currencies = new String[] {"PENY","DOLR","QUID","SHIL"};
     public static final String GEOJSON_LOCAL_FILE = "map_points.txt";
+
+    public static final HashMap<Integer, Integer> combo_times = new HashMap<Integer, Integer>() {{
+        put(2, 15000);
+        put(3, 10000);
+        put(4, 5000);
+    }};
 
     public static String getGeoJSONURL() {
         Calendar calendar = Calendar.getInstance();

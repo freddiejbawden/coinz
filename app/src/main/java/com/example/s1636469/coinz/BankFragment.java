@@ -240,6 +240,7 @@ public class BankFragment extends Fragment {
                                 @Override
                                 public void onSuccess(DocumentSnapshot documentSnapshot) {
                                     Map<String, Object> bank_data = documentSnapshot.getData();
+
                                     double cur_bank_total;
                                     try {
                                         cur_bank_total = (Double) bank_data.get(cur);

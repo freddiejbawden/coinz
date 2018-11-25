@@ -19,5 +19,7 @@
     </string-array>
 
     <string name="title_activity_send_trade">SendTradeActivity</string>
+    <string name="title_activity_sign_in">SignInActivity</string>
+    <string name="title_activity_set_up_account">SetUpAccountActivity</string>
 
 </resources>

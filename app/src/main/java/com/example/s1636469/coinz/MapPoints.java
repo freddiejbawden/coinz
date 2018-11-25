@@ -14,6 +14,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.Log;
+import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -33,11 +34,16 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class MapPoints {
-    public static List<Coin> coins = new ArrayList<Coin>();
-    public static List<MarkerOptions> markers = new ArrayList<MarkerOptions>();
+
+
+    public static HashMap<String, Coin> coins = new HashMap<String, Coin>();
+    public static HashMap<String, MarkerOptions> markers = new HashMap<String, MarkerOptions>();
+
+
     public static void plotMapPoints(Context context, MapboxMap mapboxMap) {
         IconFactory iconFactory = IconFactory.getInstance(context);
         Icon ic;
@@ -46,7 +52,8 @@ public class MapPoints {
         Canvas canvas = new Canvas(bitmap);
         vectorDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
         //DrawableCompat.setTintMode(vectorDrawable, PorterDuff.Mode.SRC_IN);
-        for (Coin c : coins) {
+        for (String c_key : coins.keySet()) {
+            Coin c = coins.get(c_key);
             DrawableCompat.setTint(vectorDrawable,c.getColor());
             vectorDrawable.draw(canvas);
             ic = IconFactory.getInstance(context).fromBitmap(bitmap);
@@ -54,14 +61,14 @@ public class MapPoints {
             LatLng pos = new LatLng(c.getLocation());
             MarkerOptions mo = new MarkerOptions().position(pos).icon(ic);
             mapboxMap.addMarker(mo);
-            MapPoints.markers.add(mo);
+            MapPoints.markers.put(c.getId(),mo);
         }
     }
     public static void addMapPoints(String file_string, Activity activity, MapboxMap mapboxMap, Location location) {
         String TAG = "MAP_PLOTTER";
 
         try {
-            MapPoints.coins = new ArrayList<Coin>();
+            MapPoints.coins = new HashMap<String, Coin>();
 
             assert(file_string != null);
             assert(file_string.length() != 0);
@@ -99,7 +106,7 @@ public class MapPoints {
                                 Location x = new Location("A");
                                 x.setLatitude(coords.getDouble(1));
                                 x.setLongitude(coords.getDouble(0));
-                                MapPoints.coins.add(new Coin(id, currency, value, x));
+                                MapPoints.coins.put(id, new Coin(id, currency, value, x));
                             }
                         }
                         plotMapPoints(activity,mapboxMap);

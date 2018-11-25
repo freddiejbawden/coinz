@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -61,6 +62,7 @@ public class MapFragment extends Fragment implements LocationEngineListener {
     private Location originLocation;
     private View view;
     private Context context;
+    private TextView coin_combo_indicator;
 
     //TODO: Fix permissions get crash
     @Override
@@ -330,7 +332,7 @@ public class MapFragment extends Fragment implements LocationEngineListener {
         });
     }
     private void getMarkersFromServer() {
-        GeoJSONGetter getter = new GeoJSONGetter(getActivity(),mapboxMap,originLocation);
+        GeoJSONGetter getter = new GeoJSONGetter(getActivity(),mapboxMap,originLocation,coin_combo_indicator);
         String url = String.format("http://homepages.inf.ed.ac.uk/stg/coinz/%s/coinzmap.geojson",Config.getGeoJSONURL());
         getter.execute(url);
     }

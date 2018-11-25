@@ -1,10 +1,13 @@
 package com.example.s1636469.coinz;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -18,24 +21,33 @@ import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 
 import java.lang.reflect.Array;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import static android.content.Context.MODE_PRIVATE;
 
 public class CoinSearcher extends AsyncTask<Location, Void, Void> {
     private List<Coin> coinsNearbyCurrentLocation;
     private Activity activity;
     private MapboxMap mapboxMap;
+    private int time_since_last_coin;
+    private TextView coin_combo_indicator;
     private String TAG = "CoinSearcher";
+    private Thread runner;
 
 
     public CoinSearcher(Activity activity,MapboxMap mapboxMap) {
         this.activity = activity;
         this.mapboxMap = mapboxMap;
     }
+
     protected Void doInBackground(Location... location) {
         if (location[0] == null) {
             Log.d(TAG,"Location is null so cannot perform coin search");
@@ -47,6 +59,7 @@ public class CoinSearcher extends AsyncTask<Location, Void, Void> {
             Toast.makeText(activity, "Unable to get list of coins, please try again later.",Toast.LENGTH_LONG);
             return null;
         }
+
         // Pull current coin data
         FirebaseFirestore.setLoggingEnabled(false);
         FirebaseFirestore database = FirebaseFirestore.getInstance();
@@ -62,38 +75,42 @@ public class CoinSearcher extends AsyncTask<Location, Void, Void> {
                 Location userLocation = location[0];
                 Coin c;
 
-                Map<String, Object> data = task.getResult().getData();
-                ArrayList<String> collected = (ArrayList<String>) data.get("collected");
+                Map<String, Object> user_data = task.getResult().getData();
+                ArrayList<String> collected = (ArrayList<String>) user_data.get("collected");
                 ArrayList<String> nearbyIds = new ArrayList<String>();
+                HashMap<String, Object> to_put = new HashMap<String, Object>();
                 int prevSize = 0;
+                boolean start_new_combo = false;
 
-                for (int i = 0; i < MapPoints.coins.size(); i++) {
-                    c = MapPoints.coins.get(i);
-                    float dist = userLocation.distanceTo(c.getLocation()) ;
+                Set<String> coin_ids = MapPoints.coins.keySet();
+                for (String coin_id : coin_ids) {
+                    c = MapPoints.coins.get(coin_id);
+                    float dist = userLocation.distanceTo(c.getLocation());
                     if (dist < Config.distanceForCollection) {
-                        Coin nearbyCoin = MapPoints.coins.get(i);
+                        Coin nearbyCoin = MapPoints.coins.get(coin_id);
                         Log.d(TAG,nearbyCoin.getId());
                         double val = nearbyCoin.getValue();
                         String cur = nearbyCoin.getCurrency();
                         double cur_val;
                         try {
-                            cur_val = (Double) (data.get(cur));
+                            cur_val = (Double) (user_data.get(cur));
                         } catch (ClassCastException e) {
-                            cur_val = ((Long) data.get(cur)).doubleValue();
+                            cur_val = ((Long) user_data.get(cur)).doubleValue();
                         }
-                        data.put(cur,cur_val+val);
+                        to_put.put(cur,cur_val+val);
                         prevSize = MapPoints.coins.size();
                         //add to collected list
                         nearbyIds.add(nearbyCoin.getId());
-
-                        //Remove the marker from the map
-                        mapboxMap.removeMarker(MapPoints.markers.get(i).getMarker());
-                        MapPoints.coins.remove(i);
                     }
                 }
+                for (String id : nearbyIds) {
+                    mapboxMap.removeMarker(MapPoints.markers.get(id).getMarker());
+                    MapPoints.coins.remove(id);
+                }
                 collected.addAll(nearbyIds);
-                data.put("collected",collected);
-                docRef.set(data, SetOptions.merge()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                to_put.put("collected",collected);
+                Log.d(TAG, collected.toString());
+                docRef.set(to_put, SetOptions.merge()).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         Log.d(TAG,"Done.");

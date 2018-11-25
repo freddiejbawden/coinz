@@ -68,7 +68,6 @@ public class LeaderboardFragment extends Fragment {
                     setLeaderboard();
                 }
             }
-
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 return;

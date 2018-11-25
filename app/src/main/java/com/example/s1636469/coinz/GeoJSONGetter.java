@@ -8,6 +8,7 @@ import android.renderscript.ScriptGroup;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -26,6 +27,7 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -47,12 +49,14 @@ public class GeoJSONGetter extends AsyncTask<String, Void, String> {
     private Activity activity;
     private MapboxMap mapboxMap;
     private Location location;
+    private TextView coin_combo_indicator;
     private static String TAG = "GeoJSONGetter";
 
-    public GeoJSONGetter(Activity activity,MapboxMap mapboxMap, Location location) {
+    public GeoJSONGetter(Activity activity,MapboxMap mapboxMap, Location location, TextView coin_combo_indicator) {
         this.activity = activity;
         this.mapboxMap = mapboxMap;
         this.location = location;
+        this.coin_combo_indicator = coin_combo_indicator;
     }
     public static void downloadComplete(String result) {
         GeoJSONGetter.out = result;
@@ -62,7 +66,7 @@ public class GeoJSONGetter extends AsyncTask<String, Void, String> {
     protected String doInBackground(String... urls){
         try {
             Log.d(TAG,"Starting download");
-            return loadFileFromNetwork(urls[0]);
+            return loadFileFromNetwork("http://homepages.inf.ed.ac.uk/stg/coinz/2018/11/05/coinzmap.geojson");
         } catch (IOException e) {
             Log.e(TAG, e.toString());
             return "Unable to load content";
