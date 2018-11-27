@@ -13,14 +13,29 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
+import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 import org.w3c.dom.Text;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SignInActivity extends Activity {
 
@@ -41,6 +56,40 @@ public class SignInActivity extends Activity {
         super.onStart();
     }
 
+    private void check_user(String id) {
+        FirebaseFirestore database = FirebaseFirestore.getInstance();
+        DocumentReference u_ref = database.collection("users").document(id);
+        u_ref.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                Map<String, Object> u_data = documentSnapshot.getData();
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                DateTime last_log = new DateTime((Date) u_data.get("last_login"));
+                DateTime now =  new DateTime(Calendar.getInstance().getTime());
+
+                LocalDate last_log_date = last_log.toLocalDate();
+                LocalDate now_date = now.toLocalDate();
+
+                if (last_log_date.compareTo(now_date) != 0) {
+                    // date has changed
+                    HashMap<String, Object> to_put = new HashMap<>();
+                    to_put.put("last_login",Calendar.getInstance().getTime());
+                    to_put.put("collected", new ArrayList<String>());
+                    u_ref.set(to_put, SetOptions.merge());
+                }
+                Intent i = new Intent(SignInActivity.this, MainActivity.class);
+                startActivity(i);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(getApplicationContext(),"Unable to log you in at this time, " +
+                        "please try again later",Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+
     private void setUpListeners() {
         Button signInButton = (Button) findViewById(R.id.signin_button);
         signInButton.setOnClickListener(new View.OnClickListener() {
@@ -54,12 +103,16 @@ public class SignInActivity extends Activity {
                         if (task.isSuccessful()) {
                             // we have been logged in!
                             Log.d(TAG, "signed in");
-                            Intent i = new Intent(SignInActivity.this, MainActivity.class);
-                            startActivity(i);
+                            check_user(mAuth.getCurrentUser().getUid());
                             // pass to another intent
                         } else {
                             Toast.makeText(getApplicationContext(),"Authentication Failed",Toast.LENGTH_SHORT).show();
                         }
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(getApplicationContext(),"Authentication Failed",Toast.LENGTH_SHORT).show();
                     }
                 });
             }

@@ -36,7 +36,7 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.
         PlayerInfo playerInfo = mData.get(position);
         holder.placeTextView.setText(playerInfo.getPlace());
         holder.nameTextView.setText(playerInfo.getU_name());
-        holder.goldTextView.setText(playerInfo.getGold());
+        holder.goldTextView.setText(Config.round(Double.parseDouble(playerInfo.getGold()),Config.CUR_VALUE_DP) + "");
     }
 
     // total number of rows

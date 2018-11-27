@@ -6,6 +6,7 @@ import android.util.Log;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 
 public class Config {
@@ -45,6 +46,7 @@ public class Config {
         put("trades",new ArrayList<HashMap<String, Object>>());
         put("weekly_GOLD",0);
         put("email","");
+        put("last_week_login",Calendar.getInstance().getTime());
     }};
 
     public static String getGeoJSONURL() {

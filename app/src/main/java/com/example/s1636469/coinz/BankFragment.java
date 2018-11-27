@@ -264,12 +264,22 @@ public class BankFragment extends Fragment {
                                         u_gold = ((Long) u_data.get("GOLD")).doubleValue();
                                     }
 
+                                    double u_weekly_gold;
+                                    try{
+                                        u_weekly_gold = (Double) u_data.get("weekly_GOLD");
+                                    } catch (ClassCastException e) {
+                                        u_weekly_gold = ((Long) u_data.get("weekly_GOLD")).doubleValue();
+                                    }
 
-                                    u_gold += amount*cur_val;
+                                    double gold_collected = amount*cur_val;
+                                    u_weekly_gold += gold_collected;
+                                    u_gold += gold_collected;
+
                                     HashMap<String, Object> user_update = new HashMap<String, Object>();
                                     user_update.put("coins_today",n_coins_submitted_today+amount);
                                     user_update.put(cur,user_cur_amount - amount);
                                     user_update.put("GOLD",u_gold);
+                                    user_update.put("weekly_GOLD",u_weekly_gold);
 
                                     uRef.set(user_update, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
                                         @Override
