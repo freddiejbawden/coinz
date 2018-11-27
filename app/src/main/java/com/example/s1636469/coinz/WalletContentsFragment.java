@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
@@ -46,8 +47,9 @@ public class WalletContentsFragment extends Fragment {
         mAdapter = new WalletContentsAdapter(getContext(),data);
         // 4. set adapter
         mRecyclerView.setAdapter(mAdapter);
-        //TODO: set active user
-        getWalletData("initial");
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String id = auth.getCurrentUser().getUid();
+        getWalletData(id);
         setUpListeners();
         return rootView;
     }
@@ -104,8 +106,9 @@ public class WalletContentsFragment extends Fragment {
 
     private void setUpListeners() {
         FirebaseFirestore database = FirebaseFirestore.getInstance();
-        //TODO: set active user
-        DocumentReference dRef = database.collection("users").document("initial");
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String id = auth.getCurrentUser().getUid();
+        DocumentReference dRef = database.collection("users").document(id);
         dRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@javax.annotation.Nullable DocumentSnapshot documentSnapshot, @javax.annotation.Nullable FirebaseFirestoreException e) {

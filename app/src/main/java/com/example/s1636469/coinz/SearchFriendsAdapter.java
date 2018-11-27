@@ -2,11 +2,7 @@ package com.example.s1636469.coinz;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
-import android.text.Layout;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -63,7 +59,7 @@ public class SearchFriendsAdapter extends RecyclerView.Adapter<SearchFriendsAdap
         ViewHolder(View itemView) {
             super(itemView);
             username = itemView.findViewById(R.id.friend_name);
-            circularImageView = itemView.findViewById(R.id.profile_img);
+            circularImageView = itemView.findViewById(R.id.profile_img_preview);
             itemView.setOnClickListener(this);
         }
 

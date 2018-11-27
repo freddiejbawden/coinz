@@ -26,6 +26,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -205,8 +206,9 @@ public class BankFragment extends Fragment {
                 Toast.makeText(getContext(), String.format("Cannot find value for %s, deposit halted",cur),Toast.LENGTH_SHORT).show();
             } else {
                 FirebaseFirestore database = FirebaseFirestore.getInstance();
-                //TODO: get active user
-                DocumentReference uRef = database.collection("users").document("initial");
+                FirebaseAuth auth = FirebaseAuth.getInstance();
+                String id = auth.getCurrentUser().getUid();
+                DocumentReference uRef = database.collection("users").document(id);
                 uRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                     @Override
                     public void onSuccess(DocumentSnapshot documentSnapshot) {

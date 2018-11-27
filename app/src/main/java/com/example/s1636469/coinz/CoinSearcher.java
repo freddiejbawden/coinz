@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -67,8 +68,11 @@ public class CoinSearcher extends AsyncTask<Location, Void, Void> {
                 .setPersistenceEnabled(true)
                 .build();
         database.setFirestoreSettings(settings);
-        //TODO: Replace Placeholder name with localStorage retrival
-        final DocumentReference docRef = database.collection("users").document("initial");
+
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String id = auth.getCurrentUser().getUid();
+
+        final DocumentReference docRef = database.collection("users").document(id);
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {

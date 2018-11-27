@@ -25,6 +25,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -69,8 +70,11 @@ public class FriendListFragment extends Fragment {
         mRecyclerView.setAdapter(mFriendAdapter);
 
         setUpListeners();
-        // TODO: Get from uname storage
-        getFriends("initial");
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String id = auth.getCurrentUser().getUid();
+
+        getFriends(id);
+
         Log.d(TAG,"getting message");
         return rootView;
     }
@@ -78,7 +82,10 @@ public class FriendListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        getFriends("initial");
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String id = auth.getCurrentUser().getUid();
+
+        getFriends(id);
     }
 
     private void setUpListeners() {
@@ -179,7 +186,7 @@ public class FriendListFragment extends Fragment {
 
             StorageReference pathReference = storageReference.child(profile_url);
 
-            //TODO: SUPER COMPRESS THE IMAGES!
+            // Images compressed on sign up
             final long ONE_MEGABYTE = 1024 * 1024;
             pathReference.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
                 @Override

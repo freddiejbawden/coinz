@@ -1,5 +1,6 @@
 package com.example.s1636469.coinz;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -17,21 +18,26 @@ import android.view.ViewGroup;
 import android.widget.SearchView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageException;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP;
@@ -67,72 +73,100 @@ public class SearchFriendsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
     }
-    private void getImage(String u_name, String profile_url) {
-        Log.d(TAG, "Getting image");
-        FirebaseStorage storage = FirebaseStorage.getInstance();
-        StorageReference storageReference = storage.getReference();
-        StorageReference pathReference = storageReference.child(profile_url);
-        //TODO: SUPER COMPRESS THE IMAGES!
-        final long ONE_MEGABYTE = 1024 * 1024;
-        pathReference.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
-            @Override
-            public void onSuccess(byte[] bytes) {
-                //Data for image is retuned
-                ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
-                Bitmap bitmap;
-                if (inputStream != null) {
-                    bitmap = BitmapFactory.decodeStream(inputStream);
-                    Log.d(TAG,"got image");
-                } else {
-                    Log.w("STATUS","inputStream is null");
-                    bitmap = BitmapFactory.decodeResource(getResources(),R.drawable.blank_profile);
-                }
-                ArrayList<FriendsInfo> toAdd = new ArrayList<FriendsInfo>();
-                toAdd.add(new FriendsInfo(u_name, bitmap));
-                data.clear();
-                data.addAll(toAdd);
-                mFriendAdapter.notifyDataSetChanged();
-                Log.d(TAG,"notified");
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.e("Friends", "Cannot get image",e);
-                Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.blank_profile);
-                ArrayList<FriendsInfo> toAdd = new ArrayList<FriendsInfo>();
-                toAdd.add(new FriendsInfo(u_name, bitmap));
-                data.clear();
-                data.addAll(toAdd);
-                mFriendAdapter.notifyDataSetChanged();
-                System.out.println(mFriendAdapter.toString());
-            }
-        });
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        data.clear();
     }
+
+    public void getImageRecursive(List<DocumentSnapshot> l_friends, ArrayList<FriendsInfo> toAdd) {
+        ArrayList<DocumentSnapshot> friends = (ArrayList<DocumentSnapshot>) l_friends;
+
+        if (friends.isEmpty()) {
+
+            Log.d("STATUS","Empty");
+            data.clear();
+            data.addAll(toAdd);
+            mFriendAdapter.notifyDataSetChanged();
+            Log.d(TAG,"Changing adapter");
+            return;
+
+        } else {
+
+            Map<String, Object> friend_map = (Map<String, Object>) friends.get(0).getData();
+            Log.d("STATUS",friend_map.toString());
+            String profile_name = (String) friend_map.get("name");
+            String profile_url = (String) friend_map.get("profile_url");
+
+            FirebaseStorage storage = FirebaseStorage.getInstance();
+            StorageReference storageReference = storage.getReference();
+            //TODO: feed url to async below
+
+            StorageReference pathReference = storageReference.child(profile_url);
+
+            // Images compressed on sign up
+            final long ONE_MEGABYTE = 1024 * 1024;
+            pathReference.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                @Override
+                public void onSuccess(byte[] bytes) {
+                    //Data for image is retuned
+                    ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
+                    Bitmap bitmap;
+                    if (inputStream != null) {
+                        bitmap = BitmapFactory.decodeStream(inputStream);
+                    } else {
+                        Log.w("STATUS","inputStream is null");
+                        bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.blank_profile);
+                    }
+                    toAdd.add(new FriendsInfo(profile_name, bitmap));
+                    friends.remove(0);
+                    getImageRecursive(friends, toAdd);
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.d(TAG, "Failed to get image");
+                    int errorCode = ((StorageException) e).getErrorCode();
+
+                    String profile_name = (String) friend_map.get("name");
+                    Bitmap bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.blank_profile);
+                    toAdd.add(new FriendsInfo(profile_name, bitmap));
+                    friends.remove(0);
+                    getImageRecursive(friends, toAdd);
+                }
+            });
+
+        }
+    }
+
+
     private void searchQuery() {
         SearchView searchView = getActivity().findViewById(R.id.searchView);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
+                /*
+
+                 Map<String, Object> user_data = (Map<String, Object>) documentSnapshot.getData();
+                        String name = (String) user_data.get("name");
+                        String profile_url = (String) user_data.get("profile_url");
+                        getImage(name, profile_url);
+                 */
                 Log.d("STATUS","Search");
                 //TODO: Send a search request
                 FirebaseFirestore database = FirebaseFirestore.getInstance();
                 //TODO: find a way to query a substring
-                DocumentReference user_ref = database.collection("users").document(query);
-                user_ref.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                CollectionReference users = database.collection("users");
+                Query q_name = users.whereEqualTo("name",query);
+                q_name.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-                        Log.d(TAG,"found user!");
-                        Map<String, Object> user_data = (Map<String, Object>) documentSnapshot.getData();
-                        String name = (String) user_data.get("username");
-                        String profile_url = (String) user_data.get("profile_url");
-                        getImage(name, profile_url);
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w(TAG,"Cannot find user",e);
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        List<DocumentSnapshot> friends = queryDocumentSnapshots.getDocuments();
+                        getImageRecursive(friends, new ArrayList<FriendsInfo>());
                     }
                 });
+
                 return false;
             }
 

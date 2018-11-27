@@ -56,7 +56,6 @@ public class TradeAdapter extends  RecyclerView.Adapter<TradeAdapter.ViewHolder>
         TextView trade_amount;
         ImageView trade_icon;
 
-        //TODO: START HERE
         private SectionsPageAdapter mAdapter;
         private String TAG ="Holder";
         ;

@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         //TODO: Splash screen pull initial values to prevent start up lag.
         super.onCreate(savedInstanceState);
-
+        Log.d(TAG, "Starting");
         SharedPreferences sharedPref= getSharedPreferences("combo", 0);
         SharedPreferences.Editor ed = sharedPref.edit();
         ed.clear();
@@ -43,13 +43,6 @@ public class MainActivity extends AppCompatActivity
 
         setContentView(R.layout.activity_main);
         Log.d(TAG, "onCreate: Starting");
-
-        //TODO: Change this so we take it from the log in
-        SharedPreferences sharedPreferences = this.getPreferences(Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("username","test");
-
-        mAuth = FirebaseAuth.getInstance();
 
         mSecionsPageAdapter = new SectionsPageAdapter(getSupportFragmentManager());
         mViewPager = (NoSwipingViewPager) findViewById(R.id.container);
@@ -117,26 +110,5 @@ public class MainActivity extends AppCompatActivity
         adapter.addFragment(new BankFragment(), "BankFragment");
         adapter.addFragment(new CommunityFragment(), "CommunityFragment");
         viewPager.setAdapter(adapter);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null) {
-            mAuth.signInAnonymously().addOnSuccessListener(new OnSuccessListener<AuthResult>() {
-                @Override
-                public void onSuccess(AuthResult authResult) {
-                    Log.d("STATUS","signed in anon");
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.w("STATUS","Log in error", e);
-                }
-            });
-        } else {
-            Log.d("STATUS", user.toString() + " logged in");
-        }
     }
 }

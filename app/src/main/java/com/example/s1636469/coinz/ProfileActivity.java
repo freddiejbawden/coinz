@@ -1,6 +1,5 @@
 package com.example.s1636469.coinz;
 
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -16,6 +15,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -46,7 +46,7 @@ public class ProfileActivity extends Activity {
             HashMap<String, Double> curs = (HashMap<String, Double>) FriendListFragment.pass_to_profile.get("currencies");
 
             //TODO: get higher res img
-            CircularImageView profile_img = (CircularImageView) findViewById(R.id.profile_img);
+            CircularImageView profile_img = (CircularImageView) findViewById(R.id.profile_img_preview);
             profile_img.setImageBitmap(img);
 
             TextView name_view = (TextView) findViewById(R.id.profile_name);
@@ -79,8 +79,9 @@ public class ProfileActivity extends Activity {
 
     private void addFriend(String friend_uname) {
         FirebaseFirestore database = FirebaseFirestore.getInstance();
-        //TODO: Replace Placeholder name with localStorage retrival
-        DocumentReference user_ref = database.collection("users").document("initial");
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String id = auth.getCurrentUser().getUid();
+        DocumentReference user_ref = database.collection("users").document(id);
         Log.d(TAG, "friend name %s".format(friend_uname));
         DocumentReference friend_ref = database.collection("users").document(friend_uname);
         friend_ref.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
@@ -125,8 +126,9 @@ public class ProfileActivity extends Activity {
 
     public void removeFriend(String friend_uname) {
         FirebaseFirestore database = FirebaseFirestore.getInstance();
-        //TODO: Replace Placeholder name with localStorage retrival
-        DocumentReference user_ref = database.collection("users").document("initial");
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String id = auth.getCurrentUser().getUid();
+        DocumentReference user_ref = database.collection("users").document(id);
         user_ref.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {

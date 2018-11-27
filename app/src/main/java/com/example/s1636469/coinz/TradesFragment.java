@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.SearchView;
 
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -68,29 +69,30 @@ public class TradesFragment extends Fragment {
     }
     private void getTrades() {
         FirebaseFirestore database = FirebaseFirestore.getInstance();
-        //TODO: Pull user from server
-        DocumentReference dRef = database.collection("users").document("initial");
-        //TODO: Get last ten and spin o/w
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String id = auth.getCurrentUser().getUid();
+        DocumentReference dRef = database.collection("users").document(id);
+
         dRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 Log.d(TAG, "send it");
-                //TODO: check if null
                 Map<String, Object> f_store_data = documentSnapshot.getData();
                 List<Object> trades = (List<Object>) f_store_data.get("trades");
                 ArrayList<TradeData> toAdd = new ArrayList<>();
                 Log.d(TAG,trades.size() + "");
+                String u_name = (String) f_store_data.get("name");
                 for (Object t : trades) {
                     Map<String, Object> trade_data = (Map<String, Object>) t;
                     boolean sent_by_user = (boolean) trade_data.get("sent_by_user");
                     String other_user = (String) trade_data.get("other_user");
                     String amount = (String) trade_data.get("amount");
                     String cur =   (String) trade_data.get("currency");
-                    //TODO: change to logged in user
+
                     if (sent_by_user) {
-                        toAdd.add(new TradeData(sent_by_user, "initial", other_user, amount,cur));
+                        toAdd.add(new TradeData(sent_by_user, u_name, other_user, amount,cur));
                     } else {
-                        toAdd.add(new TradeData(sent_by_user, other_user, "initial", amount,cur));
+                        toAdd.add(new TradeData(sent_by_user, other_user, u_name, amount,cur));
                     }
                     Log.d(TAG, "added");
                 }

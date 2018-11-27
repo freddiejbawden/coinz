@@ -8,7 +8,7 @@
     android:paddingLeft="8dp">
 
     <com.mikhaellopez.circularimageview.CircularImageView
-        android:id="@+id/profile_img"
+        android:id="@+id/profile_img_preview"
         android:layout_width="75dp"
         android:layout_height="75dp"
         android:src="@drawable/blank_profile"
@@ -30,7 +30,7 @@
         android:text="Robert"
         android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/profile_img"
+        app:layout_constraintStart_toEndOf="@+id/profile_img_preview"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.611" />
 

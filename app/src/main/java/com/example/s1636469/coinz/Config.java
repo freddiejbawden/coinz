@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.util.Log;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
@@ -27,6 +28,23 @@ public class Config {
         put(2, 15000);
         put(3, 10000);
         put(4, 5000);
+    }};
+
+    public static final HashMap<String, Object> blank_user_profile = new HashMap<String, Object>() {{
+        put("DOLR",0);
+        put("PENY",0);
+        put("QUID",0);
+        put("SHIL",0);
+        put("GOLD",0);
+        put("coins_today",0);
+        put("collected",new ArrayList<String>());
+        put("friends",new ArrayList<HashMap<String, String>>());
+        put("last_login",Calendar.getInstance().getTime());
+        put("name","");
+        put("profile_url","");
+        put("trades",new ArrayList<HashMap<String, Object>>());
+        put("weekly_GOLD",0);
+        put("email","");
     }};
 
     public static String getGeoJSONURL() {
