@@ -24,8 +24,6 @@ import java.util.Map;
 
 public class CurrencyListFragment extends Fragment{
 
-    //TODO: Store last trend and values in local storage, if unable to reach server - display these
-
     private RecyclerView mRecyclerView;
     private HashMap<String, Long> totals = new HashMap<String, Long>();
     private HashMap<String, Float> oldTrends = new HashMap<String, Float>();

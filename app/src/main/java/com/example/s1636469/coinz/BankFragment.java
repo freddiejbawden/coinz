@@ -25,6 +25,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
@@ -106,7 +107,6 @@ public class BankFragment extends Fragment {
                 updateBankWithDocumentSnapshot(documentSnapshot);
             }
         });
-        //TODO: Animate in gold value text view on coin value press
 
         coin_amount = rootView.findViewById(R.id.coin_amount_bank);
         coin_amount.addTextChangedListener(new TextWatcher() {
@@ -142,7 +142,8 @@ public class BankFragment extends Fragment {
         submit_deposit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onDepositClick();
+                v.setEnabled(false);
+                onDepositClick(v);
             }
         });
     }
@@ -163,7 +164,7 @@ public class BankFragment extends Fragment {
         }
         double mean = total_coins/4;
         for (String key : bank_data.keySet()) {
-            //TODO: Figure out calculation to do here
+
             double value;
             try {
                value = (mean/(Double) bank_data.get(key));
@@ -182,6 +183,7 @@ public class BankFragment extends Fragment {
         data.addAll(toAdd);
         mAdapter.notifyDataSetChanged();
     }
+
     private void getBankDetails() {
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         DocumentReference dRef = database.collection("bank").document("totals");
@@ -194,8 +196,7 @@ public class BankFragment extends Fragment {
         });
     }
 
-    private void onDepositClick() {
-        //TODO: disable and restart button to prevent cheating by spamming
+    private void onDepositClick(View v) {
         String value = coin_amount.getText().toString();
         if (!value.isEmpty()) {
             double amount = Double.parseDouble(coin_amount.getText().toString());;
@@ -276,12 +277,37 @@ public class BankFragment extends Fragment {
                                             Toast.makeText(getContext(), amount+" "+cur+" deposited as " +
                                                     Config.round(amount*cur_val,Config.CUR_VALUE_DP) + " GOLD",
                                                     Toast.LENGTH_SHORT).show();
+                                            v.setEnabled(true);
+                                        }
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            v.setEnabled(true);
+                                            Log.w(TAG, "Failed to add to bank",e);
+                                            Toast.makeText(getContext(), "Cannot submit to the bank" +
+                                                    "at this time",Toast.LENGTH_SHORT).show();
                                         }
                                     });
 
                                 }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    v.setEnabled(true);
+                                    Log.w(TAG, "Failed to access to bank",e);
+                                    Toast.makeText(getContext(), "Cannot submit to the bank" +
+                                            "at this time",Toast.LENGTH_SHORT).show();
+                                }
                             });
                         }
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        v.setEnabled(true);
+                        Log.w(TAG, "Failed to add to bank",e);
+                        Toast.makeText(getContext(), "Cannot submit to the bank" +
+                                "at this time",Toast.LENGTH_SHORT).show();
                     }
                 });
             }

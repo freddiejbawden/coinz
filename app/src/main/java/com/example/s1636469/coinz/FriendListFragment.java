@@ -182,7 +182,6 @@ public class FriendListFragment extends Fragment {
 
             FirebaseStorage storage = FirebaseStorage.getInstance();
             StorageReference storageReference = storage.getReference();
-            //TODO: feed url to async below
 
             StorageReference pathReference = storageReference.child(profile_url);
 

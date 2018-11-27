@@ -45,7 +45,7 @@ public class ProfileActivity extends Activity {
             Bitmap img = (Bitmap) FriendListFragment.pass_to_profile.get("img");
             HashMap<String, Double> curs = (HashMap<String, Double>) FriendListFragment.pass_to_profile.get("currencies");
 
-            //TODO: get higher res img
+
             CircularImageView profile_img = (CircularImageView) findViewById(R.id.profile_img_preview);
             profile_img.setImageBitmap(img);
 

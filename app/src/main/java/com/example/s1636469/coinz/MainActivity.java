@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        //TODO: Splash screen pull initial values to prevent start up lag.
+
         super.onCreate(savedInstanceState);
         Log.d(TAG, "Starting");
         SharedPreferences sharedPref= getSharedPreferences("combo", 0);

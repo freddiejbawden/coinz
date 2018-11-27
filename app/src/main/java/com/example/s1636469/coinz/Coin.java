@@ -3,7 +3,7 @@ package com.example.s1636469.coinz;
 import android.location.Location;
 
 public class Coin {
-    // TODO: Clean up coin type casting; sometimes float sometimes double
+
     private String id;
     private String currency;
     private Location location;

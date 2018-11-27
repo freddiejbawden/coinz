@@ -33,7 +33,6 @@ public class FriendContainerFragment extends Fragment {
     public void setupViewPager(ViewPager viewPager) {
         SectionsPageAdapter adapter = new SectionsPageAdapter((getChildFragmentManager()));
         adapter.addFragment(new FriendListFragment(),"List");
-        //TODO: make search fragement
         adapter.addFragment(new SearchFriendsFragment(),"Search");
         viewPager.setAdapter(adapter);
     }

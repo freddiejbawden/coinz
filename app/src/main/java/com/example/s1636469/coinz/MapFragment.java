@@ -41,6 +41,7 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin;
+import com.mapbox.mapboxsdk.plugins.locationlayer.modes.CameraMode;
 import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode;
 
 import java.sql.Timestamp;
@@ -65,7 +66,6 @@ public class MapFragment extends Fragment implements LocationEngineListener {
     private Context context;
     private TextView coin_combo_indicator;
 
-    //TODO: Fix permissions get crash
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -150,9 +150,6 @@ public class MapFragment extends Fragment implements LocationEngineListener {
                         @Override
                         public void onMapReady(MapboxMap mapboxMap) {
                             // start location puck service
-                            locationPlugin = new LocationLayerPlugin(mapView, mapboxMap);
-                            // choose how the puck will be rendered
-                            locationPlugin.setRenderMode(RenderMode.COMPASS);
                             setMapBox(mapboxMap);
                             enableLocationPlugin();
                             Log.d("STATUS","location loaded");
@@ -165,7 +162,7 @@ public class MapFragment extends Fragment implements LocationEngineListener {
                         }
                     });
                 } else {
-                    Toast.makeText(getActivity(), "Oh no", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), "Cannot access location!",Toast.LENGTH_SHORT).show();
                 }
                 return;
             }
@@ -179,9 +176,9 @@ public class MapFragment extends Fragment implements LocationEngineListener {
             // Create an instance of LOST location engine
             startLocationEngine();
 
-            // TODO: "setCameraMode(CameraMode.Tracking)"
             locationPlugin = new LocationLayerPlugin(mapView, mapboxMap,locationEngine);
             locationPlugin.setRenderMode(RenderMode.COMPASS);
+            locationPlugin.setCameraMode(CameraMode.TRACKING);
             setCameraPosition(originLocation,true,false);
 
         } else {
@@ -298,7 +295,7 @@ public class MapFragment extends Fragment implements LocationEngineListener {
 
     @Override
     public void onLocationChanged(Location location) {
-        // TODO: Find out why my phone does not update the location here
+
         Log.d("STATUS","location changed");
         if (location != null) {
             originLocation = location;

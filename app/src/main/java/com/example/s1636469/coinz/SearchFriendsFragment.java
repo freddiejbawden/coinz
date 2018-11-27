@@ -101,7 +101,7 @@ public class SearchFriendsFragment extends Fragment {
 
             FirebaseStorage storage = FirebaseStorage.getInstance();
             StorageReference storageReference = storage.getReference();
-            //TODO: feed url to async below
+
 
             StorageReference pathReference = storageReference.child(profile_url);
 
@@ -154,9 +154,8 @@ public class SearchFriendsFragment extends Fragment {
                         getImage(name, profile_url);
                  */
                 Log.d("STATUS","Search");
-                //TODO: Send a search request
+
                 FirebaseFirestore database = FirebaseFirestore.getInstance();
-                //TODO: find a way to query a substring
                 CollectionReference users = database.collection("users");
                 Query q_name = users.whereEqualTo("name",query);
                 q_name.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
