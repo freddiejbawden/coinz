@@ -13,8 +13,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -28,22 +30,46 @@ import java.util.Map;
 
 public class ProfileActivity extends Activity {
     protected String TAG = "Profile";
-
+    private String friend_id;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
         fillInValues();
+
         Intent i = getIntent();
-        boolean is_friend = i.getBooleanExtra("already_friends",true);
-        setUpListeners(is_friend);
+        boolean is_friend = i.getBooleanExtra("already_friends",false);
+        friend_id = FriendListFragment.pass_to_profile.getString("id");
+
+        String user_id = FirebaseAuth.getInstance().getUid();
+        FirebaseFirestore database = FirebaseFirestore.getInstance();
+        DocumentReference f_ref = database.collection("users")
+                .document("user_id")
+                .collection("friends")
+                .document(friend_id);
+        f_ref.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    setUpListeners(true);
+                } else {
+                    setUpListeners(false);
+                }
+            }
+        });
     }
 
     protected void fillInValues() {
         if (FriendListFragment.pass_to_profile != null ){
             String name = (String) FriendListFragment.pass_to_profile.get("name");
             Bitmap img = (Bitmap) FriendListFragment.pass_to_profile.get("img");
-            HashMap<String, Double> curs = (HashMap<String, Double>) FriendListFragment.pass_to_profile.get("currencies");
+            HashMap<String, Double> curs;
+            try {
+                curs = (HashMap<String, Double>) FriendListFragment.pass_to_profile.get("currencies");
+            } catch (ClassCastException e) {
+                Log.w(TAG, "Error thrown at filling in values",e);
+                return;
+            }
 
 
             CircularImageView profile_img = (CircularImageView) findViewById(R.id.profile_img_preview);
@@ -72,104 +98,85 @@ public class ProfileActivity extends Activity {
                 finish();
             }
         });
-        FloatingActionButton friend_button = (FloatingActionButton) findViewById(R.id.profile_friend_button);
-        String f_uname = (String) FriendListFragment.pass_to_profile.get("name");
-        updateButton(is_friend, f_uname);
+        updateButton(is_friend);
     }
 
-    private void addFriend(String friend_uname) {
+    private void addFriend() {
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         FirebaseAuth auth = FirebaseAuth.getInstance();
         String id = auth.getCurrentUser().getUid();
         DocumentReference user_ref = database.collection("users").document(id);
-        Log.d(TAG, "friend name %s".format(friend_uname));
-        DocumentReference friend_ref = database.collection("users").document(friend_uname);
+        Log.d(TAG, "friend name %s".format(friend_id));
+        DocumentReference friend_ref = database.collection("users").document(friend_id);
         friend_ref.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 Map<String, Object> data = (Map<String, Object>) documentSnapshot.getData();
                 if (data != null) {
                     String profile_url = (String) data.get("profile_url");
-                    String profile_name = (String) data.get("username");
-                    HashMap<String, Object> array_element = new HashMap<>();
-                    array_element.put("name",profile_name);
-                    array_element.put("profile_url", profile_url);
-                    user_ref.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                        @Override
-                        public void onSuccess(DocumentSnapshot documentSnapshot) {
-                            ArrayList<Object> friends = (ArrayList<Object>) documentSnapshot.getData().get("friends");
-                            friends.add(array_element);
-                            HashMap<String, Object> to_put = new HashMap<>();
-                            to_put.put("friends",friends);
-                            user_ref.set(to_put, SetOptions.merge()).addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Log.w(TAG,"",e);
-                                    Toast.makeText(getApplicationContext(), "Unable to add friend!", Toast.LENGTH_SHORT).show();
-                                }
-                            }).addOnSuccessListener(new OnSuccessListener<Void>() {
-                                @Override
-                                public void onSuccess(Void aVoid) {
-                                    Toast.makeText(getApplicationContext(), "Added as friend!", Toast.LENGTH_SHORT).show();
-                                    updateButton(true,friend_uname);
-                                }
-                            });
-                        }
-                    });
-                } else {
-                    Log.w(TAG, "friend data is null!");
-                }
+                    String profile_name = (String) data.get("name");
+                    String id = documentSnapshot.getId();
 
-            }
-        });
-    }
+                    HashMap<String, Object> new_friend = new HashMap<>();
+                    new_friend.put("name",profile_name);
+                    new_friend.put("profile_url", profile_url);
 
-    public void removeFriend(String friend_uname) {
-        FirebaseFirestore database = FirebaseFirestore.getInstance();
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        String id = auth.getCurrentUser().getUid();
-        DocumentReference user_ref = database.collection("users").document(id);
-        user_ref.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot documentSnapshot) {
-                Map<String, Object> data = (Map<String, Object>) documentSnapshot.getData();
-                ArrayList<Map<String, Object>> friends = (ArrayList<Map<String, Object>>) data.get("friends");
-                int i = 0;
-                boolean found = false;
-                for (Map<String, Object> friend : friends) {
-                    if (friend.get("name").equals(friend_uname)) {
-                        friends.remove(i);
-                        found = true;
-                        break;
-                    }
-                    i++;
-                }
-                if (found) {
-                    HashMap<String, Object> to_put = new HashMap<String, Object>();
-                    to_put.put("friends",friends);
-                    user_ref.set(to_put, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    user_ref.collection("friends").document(id).set(new_friend)
+                            .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
-                            Toast.makeText(getApplicationContext(),"Removed friend",Toast.LENGTH_SHORT).show();
-                            updateButton(false,friend_uname);
+                            updateButton(true);
+                            Toast.makeText(getApplicationContext(), "Added " + profile_name +
+                                "as friend",Toast.LENGTH_SHORT).show();
                         }
                     }).addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            Log.d(TAG,"firebase error caused error in removing friend");
-                            Toast.makeText(getApplicationContext(),"Unable to remove friend",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), "Cannot add friend",
+                                    Toast.LENGTH_SHORT).show();
+                            Log.w(TAG,"Error thrown when adding friend",e);
                         }
                     });
                 } else {
-                    Log.w(TAG, "Unable to find friend in list");
-                    Toast.makeText(getApplicationContext(),"Unable to remove friend!",Toast.LENGTH_SHORT).show();
+                    Log.w(TAG, "friend data is null!");
+                    Toast.makeText(getApplicationContext(),"Cannot add friend!",Toast.LENGTH_SHORT).show();
                 }
+
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.w(TAG, "Error thrown on friend add", e);
+                Toast.makeText(getApplicationContext(), "Cannot add friend!",Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void updateButton(boolean is_friend, String friend_uname) {
+    public void removeFriend() {
+        FirebaseFirestore database = FirebaseFirestore.getInstance();
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String id = auth.getCurrentUser().getUid();
+        DocumentReference remove_ref = database.collection("users").document(id)
+                .collection("friends").document(friend_id);
+        remove_ref.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Toast.makeText(getApplicationContext(), "Removed from friends list!",
+                        Toast.LENGTH_SHORT).show();
+                updateButton(false);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(getApplicationContext(), "Cannot remove friend!",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void updateButton(boolean is_friend) {
         Log.d(TAG,"update button");
+        Log.d(TAG, "userid " + friend_id);
         FloatingActionButton friend_button = (FloatingActionButton) findViewById(R.id.profile_friend_button);
         if (is_friend) {
             friend_button.setImageResource(R.drawable.remove_white);
@@ -178,7 +185,7 @@ public class ProfileActivity extends Activity {
                 public void onClick(View v) {
                     Log.d(TAG,"Remove Button clicked");
                     friend_button.setEnabled(false);
-                    removeFriend(friend_uname);
+                    removeFriend();
                 }
             });
         } else {
@@ -188,7 +195,7 @@ public class ProfileActivity extends Activity {
                 public void onClick(View v) {
                     Log.d(TAG,"Add Button clicked");
                     friend_button.setEnabled(false);
-                    addFriend(friend_uname);
+                    addFriend();
                 }
             });
         }

@@ -5,10 +5,12 @@ import android.graphics.Bitmap;
 public class FriendsInfo {
     private String name;
     private Bitmap img;
+    private String id;
 
-    public FriendsInfo(String name, Bitmap img) {
+    public FriendsInfo(String name, Bitmap img, String id) {
         this.name = name;
         this.img = img;
+        this.id = id;
     }
 
     public String getName() {
@@ -19,5 +21,10 @@ public class FriendsInfo {
         return img;
     }
 
+    public String getId() { return id; }
 
+    @Override
+    public String toString() {
+        return this.name + ", " + this.id;
+    }
 }

@@ -26,10 +26,12 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageException;
 import com.google.firebase.storage.StorageReference;
@@ -39,6 +41,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP;
@@ -86,6 +89,7 @@ public class FriendListFragment extends Fragment {
         String id = auth.getCurrentUser().getUid();
 
         getFriends(id);
+
     }
 
     private void setUpListeners() {
@@ -94,10 +98,12 @@ public class FriendListFragment extends Fragment {
             public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
                 //Disable item
                 View item = mRecyclerView.findChildViewUnder(motionEvent.getX(),motionEvent.getY());
+
                 if (item == null) {
                     return false;
                 }
                 item.setEnabled(false);
+                Log.d(TAG,"Loading Profile");
 
                 int position = mRecyclerView.getChildLayoutPosition(item);
                 FirebaseFirestore database = FirebaseFirestore.getInstance();
@@ -107,11 +113,11 @@ public class FriendListFragment extends Fragment {
                 database.setFirestoreSettings(settings);
                 FriendsInfo toDisplay = data.get(position);
 
-                DocumentReference documentReference = database.collection("users").document(toDisplay.getName().toLowerCase());
+                DocumentReference documentReference = database.collection("users").document(toDisplay.getId());
                 documentReference.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                     @Override
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
-                        if (documentSnapshot.getData() != null) {
+                        if (!documentSnapshot.getData().isEmpty()) {
                             Map<String, Object> details = documentSnapshot.getData();
                             HashMap<String, Double> curs = new HashMap<String,Double>();
                             for (String cur : Config.currencies) {
@@ -135,11 +141,11 @@ public class FriendListFragment extends Fragment {
                             bundle.putSerializable("date",(Date) details.get("last_login"));
                             bundle.putString("name",toDisplay.getName());
                             bundle.putSerializable("currencies", curs);
+                            bundle.putString("id",documentSnapshot.getId());
                             pass_to_profile = bundle;
                             System.out.println(getParentFragment().getActivity());
                             Intent i = new Intent(item.getContext(), ProfileActivity.class);
                             i.setFlags(FLAG_ACTIVITY_NEW_TASK|FLAG_ACTIVITY_CLEAR_TOP|FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-                            i.putExtra("already_friends",true);
                             startActivity(i);
                         } else {
                             Toast.makeText(getContext(), "Cannot find user! Please try again later",Toast.LENGTH_SHORT).show();
@@ -161,26 +167,27 @@ public class FriendListFragment extends Fragment {
         });
     }
 
-    public void getImageRecursive(Object o_friends, ArrayList<FriendsInfo> toAdd, Context c) {
-        ArrayList<Object> friends = (ArrayList<Object>) o_friends;
-        if (friends.isEmpty()) {
-
+    public void getImageRecursive(List<DocumentSnapshot> l_friends, ArrayList<FriendsInfo> toAdd, Context c) {
+        if (l_friends.isEmpty()) {
             Log.d("STATUS","Empty");
             data.clear();
+            Log.d(TAG, toAdd.toString());
             data.addAll(toAdd);
             mFriendAdapter.notifyDataSetChanged();
             Log.d(TAG,"Changing adapter");
             return;
 
         } else {
-
-            Log.d("STATUS","It");
-            HashMap<String, Object> friend_map = (HashMap<String, Object>) friends.get(0);
+            HashMap<String, Object> friend_map = (HashMap<String, Object>) l_friends.get(0).getData();
             Log.d("STATUS",friend_map.toString());
-            String profile_name = (String) friend_map.get("name");
-            String profile_url = (String) friend_map.get("profile_url");
+            final String profile_name = (String) friend_map.get("name");
+            final String profile_url = (String) friend_map.get("profile_url");
 
-            FirebaseStorage storage = FirebaseStorage.getInstance();
+            //Change reference to id
+            final String f_id = l_friends.get(0).getId();
+            Log.d(TAG, (f_id == l_friends.get(0).getId()) + "");
+            Log.d(TAG, "f_id: " + f_id);
+            final FirebaseStorage storage = FirebaseStorage.getInstance();
             StorageReference storageReference = storage.getReference();
 
             StorageReference pathReference = storageReference.child(profile_url);
@@ -199,9 +206,11 @@ public class FriendListFragment extends Fragment {
                         Log.w("STATUS","inputStream is null");
                         bitmap = BitmapFactory.decodeResource(c.getResources(), R.drawable.blank_profile);
                     }
-                    toAdd.add(new FriendsInfo(profile_name, bitmap));
-                    friends.remove(0);
-                    getImageRecursive(friends, toAdd,c);
+
+                    toAdd.add(new FriendsInfo(profile_name, bitmap, f_id));
+                    l_friends.remove(0);
+                    Log.d(TAG, "f_id after call " + f_id);
+                    getImageRecursive(l_friends, toAdd,c);
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
@@ -211,9 +220,9 @@ public class FriendListFragment extends Fragment {
 
                     String profile_name = (String) friend_map.get("name");
                     Bitmap bitmap = BitmapFactory.decodeResource(c.getResources(), R.drawable.blank_profile);
-                    toAdd.add(new FriendsInfo(profile_name, bitmap));
-                    friends.remove(0);
-                    getImageRecursive(friends, toAdd,c);
+                    toAdd.add(new FriendsInfo(profile_name, bitmap,f_id));
+                    l_friends.remove(0);
+                    getImageRecursive(l_friends, toAdd,c);
                 }
             });
 
@@ -230,14 +239,23 @@ public class FriendListFragment extends Fragment {
 
         ArrayList<FriendsInfo> toAdd = new ArrayList<>();
         Context c = this.getContext();
-        final DocumentReference docRef = database.collection("users").document(username);
-        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+
+        Log.d(TAG,"getting " + username  + " friends");
+
+        final CollectionReference friendsRef = database.collection("users").document(username).collection("friends");
+        friendsRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    HashMap<String, Object> profile = (HashMap<String, Object>) task.getResult().getData();
-                    getImageRecursive(profile.get("friends"), new ArrayList<FriendsInfo>(),c);
-                }
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                List<DocumentSnapshot> u_friends_data = queryDocumentSnapshots.getDocuments();
+                getImageRecursive(u_friends_data, new ArrayList<FriendsInfo>(),getContext());
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                //TODO: Check exceptions thrown
+                Toast.makeText(getContext(), "Could not get friends!", Toast.LENGTH_SHORT).show();
+                Log.w(TAG, "Error thrown when getting friends", e);
+
             }
         });
 

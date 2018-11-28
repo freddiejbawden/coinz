@@ -72,6 +72,7 @@ public class SignInActivity extends Activity {
 
                 if (last_log_date.compareTo(now_date) != 0) {
                     // date has changed
+                    Log.d(TAG, "Date has changed since last login");
                     HashMap<String, Object> to_put = new HashMap<>();
                     to_put.put("last_login",Calendar.getInstance().getTime());
                     to_put.put("collected", new ArrayList<String>());

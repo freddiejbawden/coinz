@@ -1,6 +1,5 @@
 package com.example.s1636469.coinz;
 
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -18,10 +17,8 @@ import android.view.ViewGroup;
 import android.widget.SearchView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -80,7 +77,7 @@ public class SearchFriendsFragment extends Fragment {
         data.clear();
     }
 
-    public void getImageRecursive(List<DocumentSnapshot> l_friends, ArrayList<FriendsInfo> toAdd) {
+    public void getUserRecursive(List<DocumentSnapshot> l_friends, ArrayList<FriendsInfo> toAdd) {
         ArrayList<DocumentSnapshot> friends = (ArrayList<DocumentSnapshot>) l_friends;
 
         if (friends.isEmpty()) {
@@ -98,7 +95,7 @@ public class SearchFriendsFragment extends Fragment {
             Log.d("STATUS",friend_map.toString());
             String profile_name = (String) friend_map.get("name");
             String profile_url = (String) friend_map.get("profile_url");
-
+            String id = friends.get(0).getId();
             FirebaseStorage storage = FirebaseStorage.getInstance();
             StorageReference storageReference = storage.getReference();
 
@@ -119,9 +116,9 @@ public class SearchFriendsFragment extends Fragment {
                         Log.w("STATUS","inputStream is null");
                         bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.blank_profile);
                     }
-                    toAdd.add(new FriendsInfo(profile_name, bitmap));
+                    toAdd.add(new FriendsInfo(profile_name, bitmap,id));
                     friends.remove(0);
-                    getImageRecursive(friends, toAdd);
+                    getUserRecursive(friends, toAdd);
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
@@ -131,28 +128,42 @@ public class SearchFriendsFragment extends Fragment {
 
                     String profile_name = (String) friend_map.get("name");
                     Bitmap bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.blank_profile);
-                    toAdd.add(new FriendsInfo(profile_name, bitmap));
+                    toAdd.add(new FriendsInfo(profile_name, bitmap,id));
                     friends.remove(0);
-                    getImageRecursive(friends, toAdd);
+                    getUserRecursive(friends, toAdd);
                 }
             });
 
         }
     }
 
+    private void queryEmail(CollectionReference users, String query) {
+        Query q_email = users.whereEqualTo("email",query);
+        q_email.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                List<DocumentSnapshot> friends = queryDocumentSnapshots.getDocuments();
+                if (friends.isEmpty()) {
+                    Toast.makeText(getContext(), "Could not find user " + query,
+                            Toast.LENGTH_SHORT).show();
+                } else {
+                    getUserRecursive(friends,new ArrayList<FriendsInfo>());
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d(TAG, "fail");
+            }
+        });
+    }
 
     private void searchQuery() {
         SearchView searchView = getActivity().findViewById(R.id.searchView);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                /*
 
-                 Map<String, Object> user_data = (Map<String, Object>) documentSnapshot.getData();
-                        String name = (String) user_data.get("name");
-                        String profile_url = (String) user_data.get("profile_url");
-                        getImage(name, profile_url);
-                 */
                 Log.d("STATUS","Search");
 
                 FirebaseFirestore database = FirebaseFirestore.getInstance();
@@ -162,13 +173,15 @@ public class SearchFriendsFragment extends Fragment {
                     @Override
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                         List<DocumentSnapshot> friends = queryDocumentSnapshots.getDocuments();
-                        getImageRecursive(friends, new ArrayList<FriendsInfo>());
+                        if (friends.isEmpty()) {
+                            queryEmail(users,query);
+                        } else {
+                            getUserRecursive(friends, new ArrayList<FriendsInfo>());
+                        }
                     }
                 });
-
                 return false;
             }
-
             @Override
             public boolean onQueryTextChange(String newText) {
                 Log.d("STATUS","update");
@@ -176,6 +189,7 @@ public class SearchFriendsFragment extends Fragment {
             }
         });
     }
+
     private void setUpListeners() {
         searchQuery();
         mRecyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
@@ -187,6 +201,8 @@ public class SearchFriendsFragment extends Fragment {
                 }
                 item.setEnabled(false);
 
+                Log.d(TAG, "loading profile...");
+
                 int position = mRecyclerView.getChildLayoutPosition(item);
                 FirebaseFirestore database = FirebaseFirestore.getInstance();
                 FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
@@ -195,17 +211,26 @@ public class SearchFriendsFragment extends Fragment {
                 database.setFirestoreSettings(settings);
                 FriendsInfo toDisplay = data.get(position);
 
-                DocumentReference documentReference = database.collection("users").document(toDisplay.getName().toLowerCase());
+                DocumentReference documentReference = database.collection("users").document(toDisplay.getId());
                 documentReference.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                     @Override
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
                         if (documentSnapshot.getData() != null) {
                             Map<String, Object> details = documentSnapshot.getData();
-                            HashMap<String, String> curs = new HashMap<String, String>();
+                            HashMap<String, Double> curs = new HashMap<String, Double>();
                             for (String cur : Config.currencies) {
-                                curs.put(cur, (String) details.get(cur));
+                                try {
+                                    curs.put(cur, (Double) details.get(cur));
+                                } catch (ClassCastException e) {
+                                    curs.put(cur, ((Long) details.get(cur)).doubleValue());
+                                }
+
                             }
-                            curs.put("GOLD", (String) details.get("GOLD"));
+                            try {
+                                curs.put("GOLD", (Double) details.get("GOLD"));
+                            } catch (ClassCastException e) {
+                                curs.put("GOLD", ((Long) details.get("GOLD")).doubleValue());
+                            }
                             Date last_log = (Date) details.get("last_login");
 
                             Bundle bundle = new Bundle();
@@ -213,11 +238,11 @@ public class SearchFriendsFragment extends Fragment {
                             bundle.putSerializable("date", (Date) details.get("last_login"));
                             bundle.putString("name", toDisplay.getName());
                             bundle.putSerializable("currencies", curs);
+                            bundle.putString("id",documentSnapshot.getId());
                             FriendListFragment.pass_to_profile = bundle;
                             System.out.println(getParentFragment().getActivity());
                             Intent i = new Intent(item.getContext(), ProfileActivity.class);
                             i.setFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TOP | FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-                            i.putExtra("already_friends", false);
                             startActivity(i);
                         } else {
                             Toast.makeText(getContext(), "Cannot find user! Please try again later", Toast.LENGTH_SHORT).show();

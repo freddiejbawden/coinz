@@ -39,7 +39,6 @@ public class Config {
         put("GOLD",0);
         put("coins_today",0);
         put("collected",new ArrayList<String>());
-        put("friends",new ArrayList<HashMap<String, String>>());
         put("last_login",Calendar.getInstance().getTime());
         put("name","");
         put("profile_url","");

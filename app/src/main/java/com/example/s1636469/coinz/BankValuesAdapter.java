@@ -43,7 +43,6 @@ public class BankValuesAdapter extends RecyclerView.Adapter<BankValuesAdapter.Vi
         if (bankInfo.getChange() < 1e-3 && bankInfo.getChange() > -1e-3) {
             holder.currencyValueChangeTextView.setText("0");
             holder.currencyValueChangeTextView.setTextColor(c.getColor(R.color.colorTrendUnknown));
-            Toast.makeText(this.c, "Unable to calculate coin values, please try again later",Toast.LENGTH_LONG).show();
         } else {
             holder.currencyValueChangeTextView.setText(""+Config.round(bankInfo.getChange(),Config.CUR_VALUE_DP));
             if (bankInfo.getChange() >= 0) {

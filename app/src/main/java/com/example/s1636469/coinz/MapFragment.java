@@ -329,51 +329,11 @@ public class MapFragment extends Fragment implements LocationEngineListener {
             }
         });
     }
-    private void getMarkersFromServer() {
+
+    private void plotGeoJSON() {
         GeoJSONGetter getter = new GeoJSONGetter(getActivity(),mapboxMap,originLocation,coin_combo_indicator);
         String url = String.format("http://homepages.inf.ed.ac.uk/stg/coinz/%s/coinzmap.geojson",Config.getGeoJSONURL());
         getter.execute(url);
-    }
-    private void plotGeoJSON() {
-
-        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        String id = auth.getCurrentUser().getUid();
-        DocumentReference dRef = firestore.collection("users").document(id);
-        dRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                Map<String,Object> data = task.getResult().getData();
-                Date last_login = (Date) data.get("last_login");
-                Calendar last_login_cal = Calendar. getInstance();
-                last_login_cal.setTime(last_login);
-                // Check to purge
-
-                SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMdd");
-                if(!fmt.format(Calendar.getInstance().getTime()).equals(fmt.format(last_login))) {
-                    // purge
-                    HashMap<String, Object> toUpdate = new HashMap<String, Object>();
-                    toUpdate.put("collected", new ArrayList<String>());
-                    toUpdate.put("last_login",Calendar.getInstance().getTime());
-                    dRef.set(toUpdate, SetOptions.merge()).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            Log.d("MARKERS","Day has changed since last login");
-                            getMarkersFromServer();
-                        }
-                    });
-                } else {
-                    Log.d("MARKERS","Day has not changed since last login");
-                    getMarkersFromServer();
-                }
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.w("STATUS","Failed",e);
-
-            }
-        });
     }
 
 }

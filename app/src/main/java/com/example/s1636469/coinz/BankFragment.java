@@ -109,22 +109,6 @@ public class BankFragment extends Fragment {
         });
 
         coin_amount = rootView.findViewById(R.id.coin_amount_bank);
-        coin_amount.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                updateGoldValue(s.toString());
-            }
-        });
 
         cur_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
