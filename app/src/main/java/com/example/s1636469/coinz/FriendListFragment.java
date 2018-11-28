@@ -75,7 +75,7 @@ public class FriendListFragment extends Fragment {
         setUpListeners();
         FirebaseAuth auth = FirebaseAuth.getInstance();
         String id = auth.getCurrentUser().getUid();
-
+        setUpListeners();
         getFriends(id);
 
         Log.d(TAG,"getting message");
@@ -247,6 +247,7 @@ public class FriendListFragment extends Fragment {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                 List<DocumentSnapshot> u_friends_data = queryDocumentSnapshots.getDocuments();
+                Log.d(TAG,"here");
                 getImageRecursive(u_friends_data, new ArrayList<FriendsInfo>(),getContext());
             }
         }).addOnFailureListener(new OnFailureListener() {

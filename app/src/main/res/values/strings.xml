@@ -14,7 +14,7 @@
 
     <string-array name="leaderboards">
         <item>All Time</item>
-        <item>Weekly</item>
+        <item>Friends</item>
     </string-array>
 
     <string name="title_activity_send_trade">SendTradeActivity</string>

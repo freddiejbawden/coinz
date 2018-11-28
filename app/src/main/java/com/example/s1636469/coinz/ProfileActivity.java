@@ -51,9 +51,13 @@ public class ProfileActivity extends Activity {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if (task.isSuccessful()) {
-                    setUpListeners(true);
+                    if (task.getResult().exists()) {
+                        setUpListeners(true);
+                    } else {
+                        setUpListeners(false);
+                    }
                 } else {
-                    setUpListeners(false);
+                    Toast.makeText(getApplicationContext(), "Could not find friend!",Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -117,9 +121,16 @@ public class ProfileActivity extends Activity {
                     String profile_name = (String) data.get("name");
                     String id = documentSnapshot.getId();
 
+
                     HashMap<String, Object> new_friend = new HashMap<>();
                     new_friend.put("name",profile_name);
                     new_friend.put("profile_url", profile_url);
+
+                    try {
+                        new_friend.put("GOLD",(Double) data.get("GOLD"));
+                    } catch (ClassCastException e) {
+                        new_friend.put("GOLD",((Long) data.get("GOLD")).doubleValue());
+                    }
 
                     user_ref.collection("friends").document(id).set(new_friend)
                             .addOnSuccessListener(new OnSuccessListener<Void>() {

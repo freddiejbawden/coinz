@@ -19,6 +19,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -82,45 +83,66 @@ public class LeaderboardFragment extends Fragment {
         populateAllUserLeaderboard();
     }
 
-    private void display_leaderboard_from_snapshot(List<DocumentSnapshot> to_display) {
-        ArrayList<PlayerInfo> playerInfos = new ArrayList<>();
-        int i = 1;
-        for (DocumentSnapshot documentSnapshot : to_display) {
-            Map<String, Object> user_data = documentSnapshot.getData();
-            String name = (String) user_data.get("name");
-            String gold;
-            try {
-                Double gold_val = (Double) user_data.get("GOLD");
-                gold = gold_val.toString();
-            } catch (ClassCastException e) {
-                Long gold_val = ((Long) user_data.get("GOLD"));
-                gold = gold_val.toString();
-            }
-            if (Double.parseDouble(gold) > 0) {
-                PlayerInfo pi = new PlayerInfo(i+"",name,gold);
-                Log.d(TAG,pi.toString());
-                playerInfos.add(pi);
-                i++;
-            }
-        }
-
-        Log.d(TAG,playerInfos.size() + "");
-        data.clear();
-        data.addAll(playerInfos);
-        Log.d(TAG,data.toString());
-        mAdapter.notifyDataSetChanged();
-
-    }
-
     private void populateFriendsLeaderboard() {
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         FirebaseAuth auth = FirebaseAuth.getInstance();
         String id = auth.getCurrentUser().getUid();
         CollectionReference u_friends= database.collection("users").document(id).collection("friends");
         u_friends.orderBy("GOLD", Query.Direction.DESCENDING).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                display_leaderboard_from_snapshot(queryDocumentSnapshots.getDocuments());
+
+                List<DocumentSnapshot> to_display = queryDocumentSnapshots.getDocuments();
+
+                DocumentReference u_data = database.collection("users").document(id);
+                u_data.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+
+                        Map<String, Object> u_data_map = documentSnapshot.getData();
+
+                        double user_gold;
+                        try {
+                            user_gold = (Double) u_data_map.get("GOLD");
+                        } catch (ClassCastException e) {
+                            user_gold = ((Long) u_data_map.get("GOLD")).doubleValue();
+                        }
+
+                        ArrayList<PlayerInfo> playerInfos = new ArrayList<>();
+
+                        int counter = 1;
+
+                        for (DocumentSnapshot d : to_display) {
+                            Map<String, Object> user_data = d.getData();
+                            String name = (String) user_data.get("name");
+                            double gold;
+                            try {
+                                gold = (Double) user_data.get("GOLD");
+                            } catch (ClassCastException e) {
+                                gold = ((Long) user_data.get("GOLD")).doubleValue();
+
+                            }
+                            if (gold > 0) {
+                                if (user_gold > gold) {
+                                    playerInfos.add(new PlayerInfo(counter+"","You",user_gold+""));
+                                    counter++;
+                                }
+
+                                PlayerInfo pi = new PlayerInfo(counter+"",name,gold + "");
+                                playerInfos.add(pi);
+                                counter++;
+                            }
+                        }
+
+                        Log.d(TAG,playerInfos.size() + "");
+                        data.clear();
+                        data.addAll(playerInfos);
+                        Log.d(TAG,data.toString());
+                        mAdapter.notifyDataSetChanged();
+                    }
+                });
+
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -137,7 +159,33 @@ public class LeaderboardFragment extends Fragment {
         users_ref.orderBy("GOLD", Query.Direction.DESCENDING).limit(10).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                display_leaderboard_from_snapshot(queryDocumentSnapshots.getDocuments());
+                List<DocumentSnapshot> to_display = queryDocumentSnapshots.getDocuments();
+                ArrayList<PlayerInfo> playerInfos = new ArrayList<>();
+
+                int counter = 1;
+
+                for (DocumentSnapshot d : to_display) {
+                    Map<String, Object> user_data = d.getData();
+                    String name = (String) user_data.get("name");
+                    double gold;
+                    try {
+                        gold = (Double) user_data.get("GOLD");
+                    } catch (ClassCastException e) {
+                        gold = ((Long) user_data.get("GOLD")).doubleValue();
+
+                    }
+                    if (gold > 0) {
+                        PlayerInfo pi = new PlayerInfo(counter+"",name,gold + "");
+                        playerInfos.add(pi);
+                        counter++;
+                    }
+                }
+
+                Log.d(TAG,playerInfos.size() + "");
+                data.clear();
+                data.addAll(playerInfos);
+                Log.d(TAG,data.toString());
+                mAdapter.notifyDataSetChanged();
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
