@@ -23,6 +23,7 @@ public class PlayerInfo {
         return gold;
     }
 
+
     @Override
     public String toString() {
         return u_name;

@@ -117,13 +117,15 @@ public class LeaderboardFragment extends Fragment {
                             Map<String, Object> user_data = d.getData();
                             String name = (String) user_data.get("name");
                             double gold;
+
                             try {
                                 gold = (Double) user_data.get("GOLD");
                             } catch (ClassCastException e) {
                                 gold = ((Long) user_data.get("GOLD")).doubleValue();
-
                             }
+
                             if (gold > 0) {
+
                                 if (user_gold > gold) {
                                     playerInfos.add(new PlayerInfo(counter+"","You",user_gold+""));
                                     counter++;

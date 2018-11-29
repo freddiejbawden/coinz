@@ -1,6 +1,7 @@
 package com.example.s1636469.coinz;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 public class FriendsInfo {
     private String name;
@@ -22,6 +23,19 @@ public class FriendsInfo {
     }
 
     public String getId() { return id; }
+
+    public void setImg(Bitmap b) {
+        this.img = b;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof FriendsInfo) {
+            return ((FriendsInfo) obj).getId().equals(this.id);
+        }
+        return false;
+
+    }
 
     @Override
     public String toString() {

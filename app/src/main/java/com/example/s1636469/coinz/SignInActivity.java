@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,7 +29,7 @@ import com.google.firebase.firestore.SetOptions;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
-import org.w3c.dom.Text;
+
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -41,13 +42,15 @@ public class SignInActivity extends Activity {
 
     private FirebaseAuth mAuth;
     private String TAG = "SignIn";
-
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_in);
         mAuth = FirebaseAuth.getInstance();
+        progressBar = findViewById(R.id.login_progress);
+        progressBar.setVisibility(View.INVISIBLE);
         setUpListeners();
     }
 
@@ -64,6 +67,7 @@ public class SignInActivity extends Activity {
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 Map<String, Object> u_data = documentSnapshot.getData();
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
                 DateTime last_log = new DateTime((Date) u_data.get("last_login"));
                 DateTime now =  new DateTime(Calendar.getInstance().getTime());
 
@@ -96,6 +100,7 @@ public class SignInActivity extends Activity {
         signInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                progressBar.setVisibility(View.VISIBLE);
                 String email = ((TextView) findViewById(R.id.username)).getText().toString();
                 String password = ((TextView) findViewById(R.id.password)).getText().toString();
                 mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -103,11 +108,15 @@ public class SignInActivity extends Activity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             // we have been logged in!
+                            //TODO: disable buttons
+
                             Log.d(TAG, "signed in");
                             check_user(mAuth.getCurrentUser().getUid());
                             // pass to another intent
                         } else {
                             Toast.makeText(getApplicationContext(),"Authentication Failed",Toast.LENGTH_SHORT).show();
+                            progressBar.setVisibility(View.INVISIBLE);
+
                         }
                     }
                 }).addOnFailureListener(new OnFailureListener() {

@@ -38,6 +38,8 @@ import com.google.firebase.storage.StorageReference;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -193,8 +195,8 @@ public class FriendListFragment extends Fragment {
             StorageReference pathReference = storageReference.child(profile_url);
 
             // Images compressed on sign up
-            final long ONE_MEGABYTE = 1024 * 1024;
-            pathReference.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
+
+            pathReference.getBytes(Config.ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
                 @Override
                 public void onSuccess(byte[] bytes) {
                     //Data for image is retuned

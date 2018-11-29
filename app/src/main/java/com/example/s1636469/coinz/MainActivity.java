@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity
     private SectionsPageAdapter mSecionsPageAdapter;
     private NoSwipingViewPager mViewPager;
     private MenuItem prevMenuItem;
-    private FirebaseAuth mAuth;
+    private Thread watcher;
 
     private static final String TAG = "MainActivity";
 
@@ -103,6 +103,17 @@ public class MainActivity extends AppCompatActivity
         );
 
     }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        String u_id = firebaseAuth.getCurrentUser().getUid();
+        watcher = new Thread(new FriendWatcher(u_id,watcher));
+        watcher.start();
+    }
+
+
     public void setupViewPager(ViewPager viewPager) {
         SectionsPageAdapter adapter = new SectionsPageAdapter((getSupportFragmentManager()));
         adapter.addFragment(new MapFragment(), "MapFragment");
