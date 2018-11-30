@@ -59,13 +59,21 @@ public class SignInActivity extends Activity {
         super.onStart();
     }
 
-    private void check_user(String id) {
+    private void check_user(String id,String email) {
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         DocumentReference u_ref = database.collection("users").document(id);
         u_ref.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 Map<String, Object> u_data = documentSnapshot.getData();
+
+                if (!documentSnapshot.exists()) {
+                    Intent i = new Intent(SignInActivity.this, SetUpAccountActivity.class);
+                    i.putExtra("email",email);
+                    startActivity(i);
+                    return;
+                }
+
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
                 DateTime last_log = new DateTime((Date) u_data.get("last_login"));
@@ -111,7 +119,7 @@ public class SignInActivity extends Activity {
                             //TODO: disable buttons
 
                             Log.d(TAG, "signed in");
-                            check_user(mAuth.getCurrentUser().getUid());
+                            check_user(mAuth.getCurrentUser().getUid(),email);
                             // pass to another intent
                         } else {
                             Toast.makeText(getApplicationContext(),"Authentication Failed",Toast.LENGTH_SHORT).show();
@@ -131,6 +139,7 @@ public class SignInActivity extends Activity {
         signUpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                progressBar.setVisibility(View.VISIBLE);
                 String email = ((TextView) findViewById(R.id.username)).getText().toString();
                 if (email.isEmpty()) {
                     Toast.makeText(getApplicationContext(), "Make sure to enter an email address!",
@@ -146,8 +155,6 @@ public class SignInActivity extends Activity {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 if (task.isSuccessful()) {
-                                    SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences("user",MODE_PRIVATE);
-                                    SharedPreferences.Editor editor = sharedPreferences.edit();
                                     Log.d(TAG, "created user");
                                     Intent i = new Intent(SignInActivity.this, SetUpAccountActivity.class);
                                     i.putExtra("email",email);
@@ -160,14 +167,17 @@ public class SignInActivity extends Activity {
                                                 "This email already has an account associated with it," +
                                                         " please use a another email address!",
                                                 Toast.LENGTH_LONG).show();
+                                        progressBar.setVisibility(View.INVISIBLE);
                                     } else if (e instanceof FirebaseAuthInvalidCredentialsException) {
                                         Log.d(TAG,"User did not enter a correctly formed email or password");
                                         Toast.makeText(getApplicationContext(),
                                                 "Your email or password is malformed, your " +
                                                         "password should be at least 6 characters long",
                                                 Toast.LENGTH_LONG).show();
+                                        progressBar.setVisibility(View.INVISIBLE);
                                     } else {
                                         Log.w(TAG, "A uncaught exception was thrown",e);
+                                        progressBar.setVisibility(View.INVISIBLE);
                                     }
                                 }
                             }

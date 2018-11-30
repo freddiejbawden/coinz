@@ -14,7 +14,9 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.SearchView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -48,6 +50,9 @@ public class SearchFriendsFragment extends Fragment {
     public FriendListAdapter mFriendAdapter;
     private ArrayList<FriendsInfo> data = new ArrayList<FriendsInfo>();
     private String TAG = "FriendsSearchFragment";
+    private ProgressBar progressBar;
+    private TextView failText;
+
     @Override
     @NonNull
     public View onCreateView(LayoutInflater inflater, @NonNull ViewGroup container, @NonNull Bundle savedInstanceState) {
@@ -62,6 +67,12 @@ public class SearchFriendsFragment extends Fragment {
         // 4. set adapter
         mRecyclerView.setAdapter(mFriendAdapter);
         setUpListeners();
+        progressBar = rootView.findViewById(R.id.friend_search_progress);
+        progressBar.setVisibility(View.INVISIBLE);
+
+        failText = rootView.findViewById(R.id.friends_search_fail_text);
+        failText.setVisibility(View.INVISIBLE);
+
         return rootView;
     }
 
@@ -85,6 +96,7 @@ public class SearchFriendsFragment extends Fragment {
             Log.d("STATUS","Empty");
             data.clear();
             data.addAll(toAdd);
+            progressBar.setVisibility(View.INVISIBLE);
             mFriendAdapter.notifyDataSetChanged();
             Log.d(TAG,"Changing adapter");
             return;
@@ -138,14 +150,16 @@ public class SearchFriendsFragment extends Fragment {
     }
 
     private void queryEmail(CollectionReference users, String query) {
+        failText.setVisibility(View.INVISIBLE);
         Query q_email = users.whereEqualTo("email",query);
         q_email.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                 List<DocumentSnapshot> friends = queryDocumentSnapshots.getDocuments();
                 if (friends.isEmpty()) {
-                    Toast.makeText(getContext(), "Could not find user " + query,
-                            Toast.LENGTH_SHORT).show();
+                    progressBar.setVisibility(View.INVISIBLE);
+                    failText.setVisibility(View.VISIBLE);
+
                 } else {
                     getUserRecursive(friends,new ArrayList<FriendsInfo>());
                 }
@@ -154,6 +168,9 @@ public class SearchFriendsFragment extends Fragment {
             @Override
             public void onFailure(@NonNull Exception e) {
                 Log.d(TAG, "fail");
+                progressBar.setVisibility(View.INVISIBLE);
+                failText.setVisibility(View.VISIBLE);
+
             }
         });
     }
@@ -163,6 +180,8 @@ public class SearchFriendsFragment extends Fragment {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
+
+                progressBar.setVisibility(View.VISIBLE);
 
                 Log.d("STATUS","Search");
 
@@ -185,6 +204,7 @@ public class SearchFriendsFragment extends Fragment {
             @Override
             public boolean onQueryTextChange(String newText) {
                 Log.d("STATUS","update");
+                progressBar.setVisibility(View.INVISIBLE);
                 return false;
             }
         });

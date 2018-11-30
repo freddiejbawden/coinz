@@ -18,7 +18,9 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -58,7 +60,8 @@ public class FriendListFragment extends Fragment {
     public FriendListAdapter mFriendAdapter;
     private ArrayList<FriendsInfo> data = new ArrayList<FriendsInfo>();
     private String TAG = "FriendsListFragment";
-
+    private ProgressBar progressBar;
+    private TextView failText;
 
     @Override
     @NonNull
@@ -74,6 +77,11 @@ public class FriendListFragment extends Fragment {
         // 4. set adapter
         mRecyclerView.setAdapter(mFriendAdapter);
 
+        progressBar = rootView.findViewById(R.id.friend_list_progress);
+        progressBar.setVisibility(View.INVISIBLE);
+
+        failText = rootView.findViewById(R.id.no_friends_text);
+
         setUpListeners();
         FirebaseAuth auth = FirebaseAuth.getInstance();
         String id = auth.getCurrentUser().getUid();
@@ -81,6 +89,7 @@ public class FriendListFragment extends Fragment {
         getFriends(id);
 
         Log.d(TAG,"getting message");
+
         return rootView;
     }
 
@@ -176,6 +185,7 @@ public class FriendListFragment extends Fragment {
             Log.d(TAG, toAdd.toString());
             data.addAll(toAdd);
             mFriendAdapter.notifyDataSetChanged();
+            progressBar.setVisibility(View.INVISIBLE);
             Log.d(TAG,"Changing adapter");
             return;
 
@@ -232,6 +242,8 @@ public class FriendListFragment extends Fragment {
     }
 
     public void getFriends(String username) {
+        failText.setVisibility(View.INVISIBLE);
+        progressBar.setVisibility(View.VISIBLE);
         FirebaseFirestore.setLoggingEnabled(false);
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
@@ -249,6 +261,10 @@ public class FriendListFragment extends Fragment {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                 List<DocumentSnapshot> u_friends_data = queryDocumentSnapshots.getDocuments();
+                if (u_friends_data.isEmpty()) {
+                    progressBar.setVisibility(View.INVISIBLE);
+                    failText.setVisibility(View.VISIBLE);
+                }
                 Log.d(TAG,"here");
                 getImageRecursive(u_friends_data, new ArrayList<FriendsInfo>(),getContext());
             }
@@ -258,6 +274,8 @@ public class FriendListFragment extends Fragment {
                 //TODO: Check exceptions thrown
                 Toast.makeText(getContext(), "Could not get friends!", Toast.LENGTH_SHORT).show();
                 Log.w(TAG, "Error thrown when getting friends", e);
+                failText.setVisibility(View.VISIBLE);
+                progressBar.setVisibility(View.INVISIBLE);
 
             }
         });

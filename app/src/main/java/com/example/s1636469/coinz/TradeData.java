@@ -1,5 +1,7 @@
 package com.example.s1636469.coinz;
 
+import java.util.HashMap;
+
 public class TradeData {
 
     private boolean from_user;
@@ -32,5 +34,16 @@ public class TradeData {
 
     public String get_cur_type() {
         return cur_type;
+    }
+
+    public HashMap<String, Object> to_map() {
+
+        return new HashMap<String, Object>() {{
+            put("sent_by_user", from_user);
+            put("other_user", to);
+            put("amount", Double.parseDouble(amount));
+            put("currency",cur_type);
+        }};
+
     }
 }

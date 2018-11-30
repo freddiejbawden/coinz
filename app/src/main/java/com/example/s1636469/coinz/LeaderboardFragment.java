@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -37,6 +38,7 @@ public class LeaderboardFragment extends Fragment {
     private ArrayList<PlayerInfo> data = new ArrayList<>();
     private Spinner leaderboardSpinner;
     private String TAG = "Leaderboard";
+    private ProgressBar progressBar;
 
     @Override
     @NonNull
@@ -47,6 +49,8 @@ public class LeaderboardFragment extends Fragment {
         mAdapter = new LeaderboardAdapter(getContext(), data);
         mRecyclerView.setAdapter(mAdapter);
         leaderboardSpinner = rootView.findViewById(R.id.leaderboardSpinner);
+        progressBar = (ProgressBar) rootView.findViewById(R.id.leaderboard_progress);
+        progressBar.setVisibility(View.INVISIBLE);
         setUpListeners();
         populateSpinner();
         populateAllUserLeaderboard();
@@ -84,6 +88,7 @@ public class LeaderboardFragment extends Fragment {
     }
 
     private void populateFriendsLeaderboard() {
+        progressBar.setVisibility(View.VISIBLE);
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         FirebaseAuth auth = FirebaseAuth.getInstance();
         String id = auth.getCurrentUser().getUid();
@@ -101,7 +106,7 @@ public class LeaderboardFragment extends Fragment {
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
 
                         Map<String, Object> u_data_map = documentSnapshot.getData();
-
+                        boolean user_score_added = false;
                         double user_gold;
                         try {
                             user_gold = (Double) u_data_map.get("GOLD");
@@ -126,9 +131,10 @@ public class LeaderboardFragment extends Fragment {
 
                             if (gold > 0) {
 
-                                if (user_gold > gold) {
+                                if (user_gold > gold && !user_score_added) {
                                     playerInfos.add(new PlayerInfo(counter+"","You",user_gold+""));
                                     counter++;
+                                    user_score_added = true;
                                 }
 
                                 PlayerInfo pi = new PlayerInfo(counter+"",name,gold + "");
@@ -136,11 +142,15 @@ public class LeaderboardFragment extends Fragment {
                                 counter++;
                             }
                         }
+                        if (!user_score_added) {
+                            playerInfos.add(new PlayerInfo(counter+"","You",user_gold+""));
 
+                        }
                         Log.d(TAG,playerInfos.size() + "");
                         data.clear();
                         data.addAll(playerInfos);
                         Log.d(TAG,data.toString());
+                        progressBar.setVisibility(View.INVISIBLE);
                         mAdapter.notifyDataSetChanged();
                     }
                 });
@@ -151,11 +161,13 @@ public class LeaderboardFragment extends Fragment {
             public void onFailure(@NonNull Exception e) {
                 Toast.makeText(getContext(), "Could not display friends leaderboard",
                         Toast.LENGTH_SHORT).show();
+                progressBar.setVisibility(View.INVISIBLE);
             }
         });
     }
 
     private void populateAllUserLeaderboard() {
+        progressBar.setVisibility(View.VISIBLE);
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         CollectionReference users_ref = database.collection("users");
         users_ref.orderBy("GOLD", Query.Direction.DESCENDING).limit(10).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
@@ -187,6 +199,7 @@ public class LeaderboardFragment extends Fragment {
                 data.clear();
                 data.addAll(playerInfos);
                 Log.d(TAG,data.toString());
+                progressBar.setVisibility(View.INVISIBLE);
                 mAdapter.notifyDataSetChanged();
             }
         }).addOnFailureListener(new OnFailureListener() {
@@ -194,6 +207,7 @@ public class LeaderboardFragment extends Fragment {
             public void onFailure(@NonNull Exception e) {
                 Toast.makeText(getContext(), "Could not get all time leaderboard",
                         Toast.LENGTH_SHORT).show();
+                progressBar.setVisibility(View.INVISIBLE);
             }
         });
     }

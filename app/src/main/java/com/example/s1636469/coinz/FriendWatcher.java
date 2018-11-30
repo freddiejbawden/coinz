@@ -3,7 +3,6 @@ package com.example.s1636469.coinz;
 import android.util.Log;
 
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -17,13 +16,13 @@ import java.util.Map;
 
 public class FriendWatcher implements Runnable {
 
-    public static boolean STOP_FLAG = true;
+    private static boolean STOP_FLAG = true;
 
     private String id;
     private String TAG = "FriendWatcher";
     private Thread thread;
 
-    public FriendWatcher(String id, Thread t) {
+    protected FriendWatcher(String id, Thread t) {
         this.id = id;
         this.thread = t;
     }

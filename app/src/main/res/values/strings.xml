@@ -21,4 +21,47 @@
     <string name="title_activity_sign_in">SignInActivity</string>
     <string name="title_activity_set_up_account">SetUpAccountActivity</string>
 
+
+    <string name="tutorial_text_1">\n\n\nWelcome to Coinz \n\n\n The goal of Coinz is to get as much <b>GOLD</b> as
+        possible.\nCoinz are positioned all around George Square, in order to collect them you have
+        to walk to its location in the real world! Walking near a coin will activate your coin
+        magnet that scoops up any coins within 25m of you. You can see the location of coinz on the
+        map screen. New coinz are added each day and the previous day's removed so be quick!
+    </string>
+    <string name="tutorial_button_1">
+        Got it!
+    </string>
+    <string name="tutorial_text_2">
+        The coinz you collect are stored in your wallet. There are 4 different types of coin you
+        will pick up: PENY, QUID, DOLR and SHIL. Once coins are in your wallet, you can trade them
+        with other players or exchange them with the bank.\n\n\nBy submitting coinz to the bank you get
+        GOLD in return, GOLD represents you score and cannot be deposited or traded. The value of
+        each coin in GOLD change as players deposit into the bank meaning that if everyone puts in
+        one type of coin, it\'s value will fall meaning you get less GOLD for the same amount of
+        coinz! It\'s up to you to figure out when the best time to deposit is.
+    </string>
+    <string name="tutorial_button_2">
+        Okay!
+    </string>
+    <string name="tutorial_text_3">
+        You can compare your performance with other player using the Community Tab, as well as your
+        friends! Find friends by searching their display name or email they used to sign up to
+        coinz.\n\n\n Okay, looks like you\'re good to go&#8230;
+    </string>
+    <string name="tutorial_button_3">
+        Let\'s go!
+    </string>
+
+    <string name="no_friends">
+        Looks like you don\'t have any friends, search for some above!
+    </string>
+
+    <string name="search_friends_fail">
+        Can\'t find this user!
+    </string>
+
+    <string name="no_trades">
+        You don\'t have any trades to show, try sending some coinz to another user button below
+    </string>
+
 </resources>

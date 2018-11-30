@@ -220,10 +220,8 @@ public class MapFragment extends Fragment implements LocationEngineListener {
         }
         Log.d("UI_UPDATE", "Moving camera");
         LatLng ltlng = new LatLng(location.getLatitude(), location.getLongitude());
-        //if (animate) {
-            mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                    ltlng, zoomLevel), 1);
-        //}
+
+        mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(ltlng, zoomLevel), 1);
     }
 
     @SuppressWarnings( {"MissingPermission"})
@@ -274,9 +272,6 @@ public class MapFragment extends Fragment implements LocationEngineListener {
     public void onDestroy() {
         super.onDestroy();
         mapView.onDestroy();
-        if (locationEngine != null) {
-            locationEngine.deactivate();
-        }
     }
 
     @Override
