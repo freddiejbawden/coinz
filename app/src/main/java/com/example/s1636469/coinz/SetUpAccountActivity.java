@@ -46,7 +46,7 @@ public class SetUpAccountActivity extends Activity {
     private String TAG = "SetUpAccount";
     private String email;
     private ProgressBar progressBar;
-
+    private EditText displayName;
     private String username_parser ="([a-z]|[1-9])*";
 
     @Override
@@ -57,6 +57,7 @@ public class SetUpAccountActivity extends Activity {
         email = getIntent().getStringExtra("email");
         progressBar = (ProgressBar) findViewById(R.id.set_up_progress);
         progressBar.setVisibility(View.INVISIBLE);
+        displayName = findViewById(R.id.display_name);
         setUpListeners();
     }
     private void setUpListeners() {
@@ -65,17 +66,19 @@ public class SetUpAccountActivity extends Activity {
             @Override
             public void onClick(View v) {
                 progressBar.setVisibility(View.VISIBLE);
-                String display_name = ((EditText) findViewById(R.id.display_name)).getText().toString();
+                String display_name = displayName.getText().toString();
 
                 if (display_name.isEmpty()) {
                     progressBar.setVisibility(View.INVISIBLE);
-                    Toast.makeText(getApplicationContext(), "Pleas enter a username!", Toast.LENGTH_SHORT).show();
+                    displayName.setError(getString(R.string.no_username));
+                    displayName.requestFocus();
                     return;
                 }
                 if (!display_name.matches(username_parser)) {
                     progressBar.setVisibility(View.INVISIBLE);
-                    Toast.makeText(getApplicationContext(), "Please enter a username using only" +
-                            "lowercase charactes and numbers", Toast.LENGTH_SHORT).show();
+
+                    displayName.setError(getString(R.string.username_invalid));
+                    displayName.requestFocus();
                     return;
                 }
 
@@ -149,8 +152,8 @@ public class SetUpAccountActivity extends Activity {
                             });
                         } else {
                             progressBar.setVisibility(View.INVISIBLE);
-                            Toast.makeText(getApplicationContext(), display_name + " is already " +
-                                    "taken, please choose another",Toast.LENGTH_SHORT).show();
+                            displayName.setError(getString(R.string.username_taken));
+                            displayName.requestFocus();
                         }
                     }
                 }).addOnFailureListener(new OnFailureListener() {

@@ -104,6 +104,7 @@ public class BankFragment extends Fragment {
         dRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@javax.annotation.Nullable DocumentSnapshot documentSnapshot, @javax.annotation.Nullable FirebaseFirestoreException e) {
+                Log.d(TAG,"Bank updated");
                 updateBankWithDocumentSnapshot(documentSnapshot);
             }
         });
@@ -182,13 +183,23 @@ public class BankFragment extends Fragment {
 
     private void onDepositClick(View v) {
         String value = coin_amount.getText().toString();
-        if (!value.isEmpty()) {
-            double amount = Double.parseDouble(coin_amount.getText().toString());;
+        if (value.isEmpty()) {
+            coin_amount.setError(getString(R.string.no_bank_deposit));
+            coin_amount.requestFocus();
+            return;
+        }
+        double amount = Double.parseDouble(coin_amount.getText().toString());;
+        if (amount < 0) {
+            coin_amount.setError(getString(R.string.negative_zero_depoist));
+            coin_amount.requestFocus();
+            return;
+        } else {
             String cur = (String) cur_spinner.getSelectedItem();
             SharedPreferences sharedPref= getActivity().getSharedPreferences("bank", 0);
             double cur_val = (double) sharedPref.getFloat(cur,0);
             if (cur_val == 0){
                 Toast.makeText(getContext(), String.format("Cannot find value for %s, deposit halted",cur),Toast.LENGTH_SHORT).show();
+
             } else {
                 FirebaseFirestore database = FirebaseFirestore.getInstance();
                 FirebaseAuth auth = FirebaseAuth.getInstance();

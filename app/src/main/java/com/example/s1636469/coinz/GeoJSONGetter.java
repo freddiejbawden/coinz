@@ -66,10 +66,10 @@ public class GeoJSONGetter extends AsyncTask<String, Void, String> {
     protected String doInBackground(String... urls){
         try {
             Log.d(TAG,"Starting download");
-            return loadFileFromNetwork("http://homepages.inf.ed.ac.uk/stg/coinz/2018/11/05/coinzmap.geojson");
+            return loadFileFromNetwork(urls[0]);
         } catch (IOException e) {
             Log.e(TAG, e.toString());
-            return "Unable to load content";
+            return "";
         }
     }
     private String loadFileFromNetwork(String urlString) throws IOException {
@@ -80,7 +80,7 @@ public class GeoJSONGetter extends AsyncTask<String, Void, String> {
         }
 
     }
-    private InputStream downloadURL(URL url) throws IOException {
+    private InputStream downloadURL(URL url)  {
         try {
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setReadTimeout(1000);
@@ -91,17 +91,17 @@ public class GeoJSONGetter extends AsyncTask<String, Void, String> {
             Log.d(TAG,"Response Code: " + conn.getResponseCode());
             return conn.getInputStream();
         } catch (SocketTimeoutException e) {
-            Log.d(TAG, "socket timed out");
+            Log.w(TAG, "socket timed out",e);
             return null;
         } catch (IOException e){
-            Log.d(TAG,"IOExpection");
+            Log.w(TAG,"IOExpection", e);
             return null;
         }
 
     }
 
     @NonNull
-    private String readStream(InputStream stream) throws IOException {
+    private String readStream(InputStream stream) {
         Scanner s = new Scanner(stream).useDelimiter("\\A");
         String result = s.hasNext() ? s.next() : "";
         return result;
@@ -110,12 +110,12 @@ public class GeoJSONGetter extends AsyncTask<String, Void, String> {
     @Override
     protected  void onPostExecute(String result) {
         super.onPostExecute(result);
-        if (result.equals("")) {
+        if (result == null  || result.equals("")) {
             Log.d(TAG, "readStream was blank");
             Toast.makeText(this.activity, "Unable to get coin location data", Toast.LENGTH_LONG).show();
             return;
         }
-        assert (result != null);
+
 
         MapView mapView = (MapView) this.activity.findViewById(R.id.mapView);
         MapPoints.addMapPoints(result, activity, mapboxMap, location);

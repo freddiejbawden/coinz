@@ -1,14 +1,13 @@
 package com.example.s1636469.coinz;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,7 +20,6 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -43,6 +41,8 @@ public class SignInActivity extends Activity {
     private FirebaseAuth mAuth;
     private String TAG = "SignIn";
     private ProgressBar progressBar;
+    private EditText email_text;
+    private EditText password_text;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +51,8 @@ public class SignInActivity extends Activity {
         mAuth = FirebaseAuth.getInstance();
         progressBar = findViewById(R.id.login_progress);
         progressBar.setVisibility(View.INVISIBLE);
+        email_text = findViewById(R.id.email_edit_text);
+        password_text = findViewById(R.id.password_edit_text);
         setUpListeners();
     }
 
@@ -109,8 +111,20 @@ public class SignInActivity extends Activity {
             @Override
             public void onClick(View v) {
                 progressBar.setVisibility(View.VISIBLE);
-                String email = ((TextView) findViewById(R.id.username)).getText().toString();
-                String password = ((TextView) findViewById(R.id.password)).getText().toString();
+                String email = ((TextView) findViewById(R.id.email_edit_text)).getText().toString();
+                String password = ((TextView) findViewById(R.id.password_edit_text)).getText().toString();
+                if (email.isEmpty()) {
+                    email_text.setError(getString(R.string.no_email));
+                    email_text.requestFocus();
+                    progressBar.setVisibility(View.INVISIBLE);
+                    return;
+                }
+                if (password.isEmpty()) {
+                    password_text.setError(getString(R.string.no_password));
+                    password_text.requestFocus();
+                    progressBar.setVisibility(View.INVISIBLE);
+                    return;
+                }
                 mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
@@ -130,7 +144,15 @@ public class SignInActivity extends Activity {
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(getApplicationContext(),"Authentication Failed",Toast.LENGTH_SHORT).show();
+                        if (e instanceof FirebaseAuthInvalidCredentialsException) {
+                            Log.d(TAG,"User did not enter a correctly formed email or password");
+                            Toast.makeText(getApplicationContext(), R.string.bad_email_password,
+                                    Toast.LENGTH_SHORT).show();
+                            progressBar.setVisibility(View.INVISIBLE);
+                        } else {
+                            Log.w(TAG, "A uncaught exception was thrown",e);
+                            progressBar.setVisibility(View.INVISIBLE);
+                        }
                     }
                 });
             }
@@ -140,15 +162,19 @@ public class SignInActivity extends Activity {
             @Override
             public void onClick(View v) {
                 progressBar.setVisibility(View.VISIBLE);
-                String email = ((TextView) findViewById(R.id.username)).getText().toString();
+                String email = email_text.getText().toString();
+                String password = password_text.getText().toString();
                 if (email.isEmpty()) {
-                    Toast.makeText(getApplicationContext(), "Make sure to enter an email address!",
-                            Toast.LENGTH_SHORT).show();
+                    email_text.setError(getString(R.string.no_email));
+                    email_text.requestFocus();
+                    progressBar.setVisibility(View.INVISIBLE);
+                    return;
                 }
-                String password = ((TextView) findViewById(R.id.password)).getText().toString();
                 if (password.isEmpty()) {
-                    Toast.makeText(getApplicationContext(), "Make sure to enter a password",
-                            Toast.LENGTH_SHORT).show();
+                    password_text.setError(getString(R.string.no_password));
+                    password_text.requestFocus();
+                    progressBar.setVisibility(View.INVISIBLE);
+                    return;
                 }
                 mAuth.createUserWithEmailAndPassword(email,password)
                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -163,17 +189,13 @@ public class SignInActivity extends Activity {
                                     Exception e = task.getException();
                                     if (e instanceof FirebaseAuthUserCollisionException) {
                                         Log.d(TAG, "User collision on sign up");
-                                        Toast.makeText(getApplicationContext(),
-                                                "This email already has an account associated with it," +
-                                                        " please use a another email address!",
-                                                Toast.LENGTH_LONG).show();
+                                        email_text.setError(getString(R.string.email_taken));
+                                        email_text.requestFocus();
                                         progressBar.setVisibility(View.INVISIBLE);
                                     } else if (e instanceof FirebaseAuthInvalidCredentialsException) {
                                         Log.d(TAG,"User did not enter a correctly formed email or password");
-                                        Toast.makeText(getApplicationContext(),
-                                                "Your email or password is malformed, your " +
-                                                        "password should be at least 6 characters long",
-                                                Toast.LENGTH_LONG).show();
+                                        Toast.makeText(getApplicationContext(), R.string.bad_email_password,
+                                                Toast.LENGTH_SHORT).show();
                                         progressBar.setVisibility(View.INVISIBLE);
                                     } else {
                                         Log.w(TAG, "A uncaught exception was thrown",e);

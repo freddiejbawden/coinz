@@ -63,5 +63,35 @@
     <string name="no_trades">
         You don\'t have any trades to show, try sending some coinz to another user button below
     </string>
+    <string name="bad_email_password">
+        Please enter a valid email and password
+    </string>
+    <string name="user_already_taken">
+        That email is already taken by a user, please use another one
+    </string>
+    <string name="no_email">
+        Please provide an email
+    </string>
+    <string name="no_password">
+        Please provide a password
+    </string>
+    <string name="email_taken">
+        Email is taken
+    </string>
+    <string name="no_username">
+        Please enter a username
+    </string>
+    <string name="username_invalid">
+        Usernames must only contain lowercase letters and numbers
+    </string>
+    <string name="username_taken">
+        Username taken!
+    </string>
+    <string name="no_bank_deposit">
+        Enter an amount of coins to send
+    </string>
+    <string name="negative_zero_depoist">
+        Enter a positive amount of coins
+    </string>
 
 </resources>

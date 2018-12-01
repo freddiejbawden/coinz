@@ -4,11 +4,9 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -18,16 +16,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.ServerTimestamp;
-import com.google.firebase.firestore.SetOptions;
+
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineListener;
 import com.mapbox.android.core.location.LocationEnginePriority;
@@ -44,15 +33,6 @@ import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin;
 import com.mapbox.mapboxsdk.plugins.locationlayer.modes.CameraMode;
 import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode;
 
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.mapbox.mapboxsdk.Mapbox.getApplicationContext;
 
 public class MapFragment extends Fragment implements LocationEngineListener {
     private static final String TAG = "MapFragment";

@@ -84,69 +84,78 @@ public class SendTradeActivity extends Activity {
                             cur_amount = ((Long) user_data.get(cur)).doubleValue();
                         }
 
-                        if (cur_amount >= amount) {
-                            //Trade is good to go!
-                            final String user_name = (String) user_data.get("name");
+                        Log.d(TAG, "Cur Amount: " + cur_amount);
 
-                            HashMap<String, Object> to_put_user = new HashMap<>();
-                            to_put_user.put(cur, (cur_amount-amount));
-
-                            Query query = database.collection("users").whereEqualTo("name",other_user);
-                            query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                                @Override
-                                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                                    List<DocumentSnapshot> documentSnapshots = queryDocumentSnapshots.getDocuments();
-                                    if (documentSnapshots.isEmpty()) {
-                                        progressBar.setVisibility(View.INVISIBLE);
-                                        Toast.makeText(getApplicationContext(), "Cannot find " +
-                                                "user " + other_user,Toast.LENGTH_SHORT).show();
-                                    } else {
-                                        Map<String, Object> other_data = (Map<String, Object>) documentSnapshots.get(0).getData();
-
-                                        String other_u_id = (String) documentSnapshots.get(0).getId();
-                                        Double other_u_amount;
-                                        try {
-                                            other_u_amount = (Double) other_data.get(cur);
-                                        } catch (ClassCastException e) {
-                                            other_u_amount = ((Long) other_data.get(cur)).doubleValue();
-                                        }
-
-                                        final String other_name = (String) other_data.get("name");
-
-                                        DocumentReference other_ref = database.collection("users")
-                                                .document(other_u_id);
-
-                                        HashMap<String, Object> to_put_other = new HashMap<>();
-                                        to_put_other.put(cur, (other_u_amount+amount));
-
-                                        user_ref.set(to_put_user, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
-                                            @Override
-                                            public void onSuccess(Void aVoid) {
-                                                other_ref.set(to_put_other, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                    @Override
-                                                    public void onSuccess(Void aVoid) {
-                                                        progressBar.setVisibility(View.INVISIBLE);
-                                                        Toast.makeText(getApplicationContext(), amount + " "  + cur + " sent to " + other_user,Toast.LENGTH_LONG).show();
-                                                        updateTradeDataArray(id, user_name, other_u_id, other_name,amount,cur);
-                                                    }
-                                                });
-                                            }
-                                        });
-                                    }
-                                }
-                            }).addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Toast.makeText(getApplicationContext(), "Cannot find user " + other_user,Toast.LENGTH_SHORT).show();
-                                    progressBar.setVisibility(View.INVISIBLE);
-                                }
-                            });
-                        } else {
+                        if (cur_amount < amount) {
                             //User does not have enough cashola
                             String out = "You don't have enough " + cur + " to perform this transaction! Check your wallet!";
                             Toast.makeText(getApplicationContext(), out ,Toast.LENGTH_LONG).show();
                             progressBar.setVisibility(View.INVISIBLE);
+                            return;
                         }
+
+                        if (amount <= 0) {
+                            Toast.makeText(getApplicationContext(), "Please enter an amount" +
+                                    " more than 0!",Toast.LENGTH_SHORT).show();
+                            progressBar.setVisibility(View.INVISIBLE);
+                            return;
+                        }
+                        //Trade is good to go!
+                        final String user_name = (String) user_data.get("name");
+
+                        HashMap<String, Object> to_put_user = new HashMap<>();
+                        to_put_user.put(cur, (cur_amount-amount));
+
+                        Query query = database.collection("users").whereEqualTo("name",other_user);
+                        query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                            @Override
+                            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                List<DocumentSnapshot> documentSnapshots = queryDocumentSnapshots.getDocuments();
+                                if (documentSnapshots.isEmpty()) {
+                                    progressBar.setVisibility(View.INVISIBLE);
+                                    Toast.makeText(getApplicationContext(), "Cannot find " +
+                                            "user " + other_user,Toast.LENGTH_SHORT).show();
+                                } else {
+                                    Map<String, Object> other_data = (Map<String, Object>) documentSnapshots.get(0).getData();
+
+                                    String other_u_id = (String) documentSnapshots.get(0).getId();
+                                    Double other_u_amount;
+                                    try {
+                                        other_u_amount = (Double) other_data.get(cur);
+                                    } catch (ClassCastException e) {
+                                        other_u_amount = ((Long) other_data.get(cur)).doubleValue();
+                                    }
+
+                                    final String other_name = (String) other_data.get("name");
+
+                                    DocumentReference other_ref = database.collection("users")
+                                            .document(other_u_id);
+
+                                    HashMap<String, Object> to_put_other = new HashMap<>();
+                                    to_put_other.put(cur, (other_u_amount+amount));
+
+                                    user_ref.set(to_put_user, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            other_ref.set(to_put_other, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void aVoid) {
+                                                    progressBar.setVisibility(View.INVISIBLE);
+                                                    Toast.makeText(getApplicationContext(), amount + " "  + cur + " sent to " + other_user,Toast.LENGTH_LONG).show();
+                                                    updateTradeDataArray(id, user_name, other_u_id, other_name,amount,cur);
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(getApplicationContext(), "Cannot find user " + other_user,Toast.LENGTH_SHORT).show();
+                                progressBar.setVisibility(View.INVISIBLE);
+                            }
+                        });
                     }
                 });
                     //if so; get the other users wallet and send the coinz to it
