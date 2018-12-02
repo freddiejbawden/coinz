@@ -2,7 +2,10 @@ package com.example.s1636469.coinz;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
+import android.support.annotation.NonNull;
+import android.util.Log;
 
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -38,13 +41,19 @@ public class TestUtils {
             put("SHIL",10);
             put("QUID",10);
             put("DOLR",10);
+            put("coins_today",0);
         }};
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         String id = auth.getCurrentUser().getUid();
         FirebaseFirestore database = FirebaseFirestore.getInstance();
 
-        database.collection("users").document(id).set(reset, SetOptions.merge());
+        database.collection("users").document(id).set(reset, SetOptions.merge()).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.w("TestUtils", "Failed to reset", e);
+            }
+        });
     }
 }
 

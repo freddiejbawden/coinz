@@ -73,6 +73,7 @@ public class BankFragment extends Fragment {
         setUpListeners();
         return rootView;
     }
+
     private void populateSpinner() {
         cur_spinner = (Spinner) rootView.findViewById(R.id.cur_spinner_bank);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(), R.array.currencies,
@@ -81,6 +82,7 @@ public class BankFragment extends Fragment {
 
         cur_spinner.setAdapter(adapter);
     }
+
     private void updateGoldValue(String value){
         if (!value.equals(null) && !value.equals("") && !value.isEmpty()) {
             String currency = (String) cur_spinner.getSelectedItem();
@@ -98,6 +100,7 @@ public class BankFragment extends Fragment {
         }
 
     }
+
     private void setUpListeners() {
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         DocumentReference dRef = database.collection("bank").document("totals");
@@ -132,6 +135,7 @@ public class BankFragment extends Fragment {
             }
         });
     }
+
     private void updateBankWithDocumentSnapshot(DocumentSnapshot documentSnapshot) {
         SharedPreferences sharedPref= getActivity().getSharedPreferences("bank", 0);
         SharedPreferences.Editor editor= sharedPref.edit();
@@ -189,7 +193,7 @@ public class BankFragment extends Fragment {
             return;
         }
         double amount = Double.parseDouble(coin_amount.getText().toString());;
-        if (amount < 0) {
+        if (amount <= 0) {
             coin_amount.setError(getString(R.string.negative_zero_depoist));
             coin_amount.requestFocus();
             return;
@@ -221,16 +225,19 @@ public class BankFragment extends Fragment {
                         } catch (ClassCastException e) {
                             n_coins_submitted_today = ((Long) u_data.get("coins_today")).doubleValue();
                         }
-
+                        if (n_coins_submitted_today >=  25) {
+                            coin_amount.setError(getString(R.string.too_many_coins_today));
+                            coin_amount.requestFocus();
+                            return;
+                        }
                         if (n_coins_submitted_today + amount > Config.TOTAL_COINS_PER_DAY) {
-                            double coins_still_to_deposit = Config.TOTAL_COINS_PER_DAY-n_coins_submitted_today;
-                            Toast.makeText(getContext(),
-                                    "You have already submitted " + n_coins_submitted_today+ " coins today!",
-                                    Toast.LENGTH_LONG).show();
+                            coin_amount.setError(String.format(getString(R.string.depoist_overlimit),amount+""));
+                            coin_amount.requestFocus();
+                            return;
                         } else if (amount > user_cur_amount) {
-                            Toast.makeText(getContext(),
-                                    String.format("You do not have enough %s in your wallet to deposit!",cur),
-                                    Toast.LENGTH_LONG).show();
+                            coin_amount.setError(getString(R.string.not_enough_coins));
+                            coin_amount.requestFocus();
+                            return;
                         } else {
                             //deposit okay
                             DocumentReference bankRef = database.collection("bank").document("totals");

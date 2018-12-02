@@ -50,6 +50,7 @@ public class MapFragment extends Fragment implements LocationEngineListener {
     public void onAttach(Context context) {
         super.onAttach(context);
         Mapbox.getInstance(context, "pk.eyJ1IjoiZnJlZGRpZWpiYXdkZW4iLCJhIjoiY2ptb3NtZHhrMDAwazNwbDgzM2l4YjI1MSJ9.zCqzFmwVZoUGtTJgeZOMTw");
+
     }
 
     @Override
@@ -61,12 +62,8 @@ public class MapFragment extends Fragment implements LocationEngineListener {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if (view == null) {
-            Log.d("STATUS", "view is null");    locationEngine.setInterval(5000);
 
-        } else {
-            setUpListeners();
-        }
+        setUpListeners();
         context = getActivity();
         FloatingActionButton fab = view.findViewById(R.id.gps_centre);
         fab.setImageResource(R.drawable.ic_gps_fixed);

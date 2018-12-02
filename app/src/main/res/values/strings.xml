@@ -93,5 +93,17 @@
     <string name="negative_zero_depoist">
         Enter a positive amount of coins
     </string>
+    <string name="not_enough_coins">
+        You do not have that many coins to deposit, check your wallet
+    </string>
+    <string name="too_many_coins_today">
+        You have already submitted 25 coins!
+    </string>
+    <string name="depoist_overlimit">
+        You have already submitted %s coins today
+    </string>
+    <string name="no_trades_to_show">
+        You don\'t have any trades to show, try sending some coinz to another user button below
+    </string>
 
 </resources>
