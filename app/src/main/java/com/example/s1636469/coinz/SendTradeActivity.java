@@ -34,6 +34,8 @@ public class SendTradeActivity extends Activity {
 
     private ProgressBar progressBar;
     private String TAG = "SendTrade";
+    private  EditText recp;
+    private EditText amount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,23 +53,48 @@ public class SendTradeActivity extends Activity {
         cur_spinner.setAdapter(adapter);
         setUpListeners();
     }
+
     private void setUpListeners() {
         FloatingActionButton send = findViewById(R.id.confirm_trade);
         send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 progressBar.setVisibility(View.VISIBLE);
-                EditText recp = (EditText) findViewById(R.id.recipient_inp);
+                recp = (EditText) findViewById(R.id.recipient_inp);
                 String other_user = recp.getText().toString();
-                EditText str_amount = (EditText) findViewById(R.id.coin_amount);
-                double amount = Double.parseDouble(str_amount.getText().toString());
+                amount = (EditText) findViewById(R.id.coin_amount);
+
+                if (other_user.isEmpty()) {
+                    recp.setError(getString(R.string.no_trade_user));
+                    recp.requestFocus();
+                    progressBar.setVisibility(View.INVISIBLE);
+                    return;
+                }
+
+                String str_amount = amount.getText().toString();
+                if (str_amount.isEmpty()) {
+                    amount.setError(getString(R.string.no_trade_amount));
+                    amount.requestFocus();
+                    progressBar.setVisibility(View.INVISIBLE);
+                    return;
+                }
+
+                double trade_amount = Double.parseDouble(str_amount);
+                if (trade_amount <= 0) {
+                    amount.setError(getString(R.string.negative_zero_trade_amount));
+                    amount.requestFocus();
+                    progressBar.setVisibility(View.INVISIBLE);
+                    return;
+                }
+
+
                 Spinner cur_spin = findViewById(R.id.cur_spinner);
                 String cur = (String) cur_spin.getSelectedItem();
                 Log.d(TAG,other_user);
                 Log.d(TAG,amount + "");
                 Log.d(TAG,cur);
-                // check the sender has enough coinz
 
+                // check the sender has enough coinz
                 FirebaseAuth auth = FirebaseAuth.getInstance();
                 String id = auth.getCurrentUser().getUid();
 
@@ -86,25 +113,19 @@ public class SendTradeActivity extends Activity {
 
                         Log.d(TAG, "Cur Amount: " + cur_amount);
 
-                        if (cur_amount < amount) {
+                        if (cur_amount < trade_amount) {
                             //User does not have enough cashola
-                            String out = "You don't have enough " + cur + " to perform this transaction! Check your wallet!";
-                            Toast.makeText(getApplicationContext(), out ,Toast.LENGTH_LONG).show();
+                            amount.setError(getString(R.string.no_enough_for_trades));
+                            amount.requestFocus();
                             progressBar.setVisibility(View.INVISIBLE);
                             return;
                         }
 
-                        if (amount <= 0) {
-                            Toast.makeText(getApplicationContext(), "Please enter an amount" +
-                                    " more than 0!",Toast.LENGTH_SHORT).show();
-                            progressBar.setVisibility(View.INVISIBLE);
-                            return;
-                        }
                         //Trade is good to go!
                         final String user_name = (String) user_data.get("name");
 
                         HashMap<String, Object> to_put_user = new HashMap<>();
-                        to_put_user.put(cur, (cur_amount-amount));
+                        to_put_user.put(cur, (cur_amount-trade_amount));
 
                         Query query = database.collection("users").whereEqualTo("name",other_user);
                         query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
@@ -112,9 +133,9 @@ public class SendTradeActivity extends Activity {
                             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                                 List<DocumentSnapshot> documentSnapshots = queryDocumentSnapshots.getDocuments();
                                 if (documentSnapshots.isEmpty()) {
+                                    recp.setError(getString(R.string.user_not_found));
+                                    recp.requestFocus();
                                     progressBar.setVisibility(View.INVISIBLE);
-                                    Toast.makeText(getApplicationContext(), "Cannot find " +
-                                            "user " + other_user,Toast.LENGTH_SHORT).show();
                                 } else {
                                     Map<String, Object> other_data = (Map<String, Object>) documentSnapshots.get(0).getData();
 
@@ -132,7 +153,7 @@ public class SendTradeActivity extends Activity {
                                             .document(other_u_id);
 
                                     HashMap<String, Object> to_put_other = new HashMap<>();
-                                    to_put_other.put(cur, (other_u_amount+amount));
+                                    to_put_other.put(cur, (other_u_amount+trade_amount));
 
                                     user_ref.set(to_put_user, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
                                         @Override
@@ -141,8 +162,8 @@ public class SendTradeActivity extends Activity {
                                                 @Override
                                                 public void onSuccess(Void aVoid) {
                                                     progressBar.setVisibility(View.INVISIBLE);
-                                                    Toast.makeText(getApplicationContext(), amount + " "  + cur + " sent to " + other_user,Toast.LENGTH_LONG).show();
-                                                    updateTradeDataArray(id, user_name, other_u_id, other_name,amount,cur);
+                                                    Toast.makeText(getApplicationContext(), trade_amount + " "  + cur + " sent to " + other_user,Toast.LENGTH_LONG).show();
+                                                    updateTradeDataArray(id, user_name, other_u_id, other_name,trade_amount,cur);
                                                 }
                                             });
                                         }

@@ -15,6 +15,7 @@ import com.google.firebase.firestore.SetOptions;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class TestUtils {
@@ -42,6 +43,7 @@ public class TestUtils {
             put("QUID",10);
             put("DOLR",10);
             put("coins_today",0);
+            put("trades",new ArrayList<Object>());
         }};
 
         FirebaseAuth auth = FirebaseAuth.getInstance();

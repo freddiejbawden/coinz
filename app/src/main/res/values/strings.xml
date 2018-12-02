@@ -102,8 +102,20 @@
     <string name="depoist_overlimit">
         You have already submitted %s coins today
     </string>
-    <string name="no_trades_to_show">
-        You don\'t have any trades to show, try sending some coinz to another user button below
+    <string name="no_trade_user">
+        Enter a user to send your coins to
+    </string>
+    <string name="no_trade_amount">
+        Enter an amount of coins to send
+    </string>
+    <string name="negative_zero_trade_amount">
+        Enter a positive amount of coins
+    </string>
+    <string name="no_enough_for_trades">
+        Not enough coins in your wallet
+    </string>
+    <string name="user_not_found">
+        User not found
     </string>
 
 </resources>
