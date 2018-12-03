@@ -1,3 +1,8 @@
+/*
+ * PlayerInfo
+ *
+ * Container class for Friend Recycler info
+ */
 package com.example.s1636469.coinz;
 
 public class PlayerInfo {

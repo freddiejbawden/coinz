@@ -1,3 +1,9 @@
+/*
+ *  NoSwipingViewPager
+ *
+ *  Taken from
+ *  https://stackoverflow.com/questions/9650265/how-do-disable-paging-by-swiping-with-finger-in-viewpager-but-still-be-able-to-s
+ */
 package com.example.s1636469.coinz;
 
 import android.content.Context;

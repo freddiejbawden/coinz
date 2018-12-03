@@ -1,3 +1,10 @@
+/*
+ * SectionsPageAdapter
+ *
+ *
+ */
+
+//TODO: find refrence for this
 package com.example.s1636469.coinz;
 
 import android.support.annotation.Nullable;

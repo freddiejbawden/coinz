@@ -1,3 +1,8 @@
+/*
+ *  SearchFriendsAdapter
+ *
+ *  Adapter class for the friend search list
+ */
 package com.example.s1636469.coinz;
 
 import android.content.Context;

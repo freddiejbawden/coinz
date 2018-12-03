@@ -1,3 +1,8 @@
+/*
+ *  WalletFragment
+ *
+ *  Wrapper for the wallet contents
+ */
 package com.example.s1636469.coinz;
 
 import android.os.Bundle;

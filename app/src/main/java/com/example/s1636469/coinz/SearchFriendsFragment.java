@@ -1,11 +1,17 @@
+/*
+ * Search Friends Fragment
+ *
+ * Allows the user to search through users
+ *
+ */
 package com.example.s1636469.coinz;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -29,7 +35,6 @@ import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageException;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.ByteArrayInputStream;
@@ -42,57 +47,61 @@ import java.util.Map;
 import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP;
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static android.content.Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED;
+import static com.example.s1636469.coinz.Config.ONE_MEGABYTE;
 
 public class SearchFriendsFragment extends Fragment {
 
-    private View rootView;
+
     private RecyclerView mRecyclerView;
     public FriendListAdapter mFriendAdapter;
-    private ArrayList<FriendsInfo> data = new ArrayList<FriendsInfo>();
+    private ArrayList<FriendsInfo> data = new ArrayList<>();
     private String TAG = "FriendsSearchFragment";
     private ProgressBar progressBar;
     private TextView failText;
+    private SearchView searchView;
 
     @Override
-    @NonNull
-    public View onCreateView(LayoutInflater inflater, @NonNull ViewGroup container, @NonNull Bundle savedInstanceState) {
-        rootView = inflater.inflate(R.layout.fragment_search_friends, container, false);
-        // 1. get a reference to recyclerView
-        mRecyclerView= (RecyclerView) rootView.findViewById(R.id.search_friends_list);
+    public View onCreateView(@NonNull  LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View rootView = inflater.inflate(R.layout.fragment_search_friends, container, false);
 
-        // 2. set layoutManger
+        // Set up recycler view
+        mRecyclerView= rootView.findViewById(R.id.search_friends_list);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
         mFriendAdapter = new FriendListAdapter(getContext(),data);
-        // 4. set adapter
         mRecyclerView.setAdapter(mFriendAdapter);
-        setUpListeners();
+
+        // set up progress bar
         progressBar = rootView.findViewById(R.id.friend_search_progress);
         progressBar.setVisibility(View.INVISIBLE);
 
+        // set up failure text
         failText = rootView.findViewById(R.id.friends_search_fail_text);
         failText.setVisibility(View.INVISIBLE);
 
+        searchView = rootView.findViewById(R.id.search_friends_list);
+
+        setUpListeners();
         return rootView;
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        // clear data when the user returns to the class
         data.clear();
     }
 
+    /*
+     *  getUserRecursive
+     *
+     *  get all users' details from the result of the search and display them
+     */
     public void getUserRecursive(List<DocumentSnapshot> l_friends, ArrayList<FriendsInfo> toAdd) {
         ArrayList<DocumentSnapshot> friends = (ArrayList<DocumentSnapshot>) l_friends;
 
-        if (friends.isEmpty()) {
 
+        // Base case, update recycler view
+        if (friends.isEmpty()) {
             Log.d("STATUS","Empty");
             data.clear();
             data.addAll(toAdd);
@@ -100,83 +109,93 @@ public class SearchFriendsFragment extends Fragment {
             mFriendAdapter.notifyDataSetChanged();
             Log.d(TAG,"Changing adapter");
             return;
-
-        } else {
-
-            Map<String, Object> friend_map = (Map<String, Object>) friends.get(0).getData();
-            Log.d("STATUS",friend_map.toString());
-            String profile_name = (String) friend_map.get("name");
-            String profile_url = (String) friend_map.get("profile_url");
-            String id = friends.get(0).getId();
-            FirebaseStorage storage = FirebaseStorage.getInstance();
-            StorageReference storageReference = storage.getReference();
-
-
-            StorageReference pathReference = storageReference.child(profile_url);
-
-            // Images compressed on sign up
-            final long ONE_MEGABYTE = 1024 * 1024;
-            pathReference.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
-                @Override
-                public void onSuccess(byte[] bytes) {
-                    //Data for image is retuned
-                    ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
-                    Bitmap bitmap;
-                    if (inputStream != null) {
-                        bitmap = BitmapFactory.decodeStream(inputStream);
-                    } else {
-                        Log.w("STATUS","inputStream is null");
-                        bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.blank_profile);
-                    }
-                    toAdd.add(new FriendsInfo(profile_name, bitmap,id));
-                    friends.remove(0);
-                    getUserRecursive(friends, toAdd);
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.d(TAG, "Failed to get image");
-                    int errorCode = ((StorageException) e).getErrorCode();
-
-                    String profile_name = (String) friend_map.get("name");
-                    Bitmap bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.blank_profile);
-                    toAdd.add(new FriendsInfo(profile_name, bitmap,id));
-                    friends.remove(0);
-                    getUserRecursive(friends, toAdd);
-                }
-            });
-
         }
+
+        Map<String, Object> friend_map = friends.get(0).getData();
+        if (friend_map == null) {
+            Log.d(TAG, "Failed to get friend map");
+            friends.remove(0);
+            getUserRecursive(friends, toAdd);
+        }
+
+        // Get details about user
+        Log.d("STATUS",friend_map.toString());
+        String profile_name = (String) friend_map.get("name");
+        String profile_url = (String) friend_map.get("profile_url");
+        String id = friends.get(0).getId();
+
+
+        // Get storage reference for the user's profile image
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+        StorageReference storageReference = storage.getReference();
+        StorageReference pathReference = storageReference.child(profile_url);
+
+        pathReference.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
+            @Override
+            public void onSuccess(byte[] bytes) {
+                // Convert byte stream to bitmap and recurse
+                ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
+                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                toAdd.add(new FriendsInfo(profile_name, bitmap,id));
+                friends.remove(0);
+                getUserRecursive(friends, toAdd);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d(TAG, "Failed to get image");
+
+                // Get a default image
+                String profile_name = (String) friend_map.get("name");
+                Bitmap bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.blank_profile);
+                toAdd.add(new FriendsInfo(profile_name, bitmap,id));
+                friends.remove(0);
+                getUserRecursive(friends, toAdd);
+            }
+        });
     }
 
+    /*
+     *  queryEmail
+     *
+     *  searches all users by email
+     */
     private void queryEmail(CollectionReference users, String query) {
         failText.setVisibility(View.INVISIBLE);
+
+        // Build the query
         Query q_email = users.whereEqualTo("email",query);
         q_email.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                 List<DocumentSnapshot> friends = queryDocumentSnapshots.getDocuments();
                 if (friends.isEmpty()) {
+                    // if the query was unsuccessful
                     progressBar.setVisibility(View.INVISIBLE);
                     failText.setVisibility(View.VISIBLE);
-
                 } else {
+
+                    // display their information
                     getUserRecursive(friends,new ArrayList<FriendsInfo>());
                 }
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                Log.d(TAG, "fail");
+                Log.d(TAG, "Failed to perform query");
                 progressBar.setVisibility(View.INVISIBLE);
                 failText.setVisibility(View.VISIBLE);
 
             }
         });
     }
-
-    private void searchQuery() {
-        SearchView searchView = getActivity().findViewById(R.id.searchView);
+    /*
+     * setUpListeners
+     *
+     *  sets up listeners for searching and recycler view items
+     */
+    private void setUpListeners() {
+        // Set up search view listener
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -185,16 +204,21 @@ public class SearchFriendsFragment extends Fragment {
 
                 Log.d("STATUS","Search");
 
+                // Get reference to firebase
                 FirebaseFirestore database = FirebaseFirestore.getInstance();
                 CollectionReference users = database.collection("users");
                 Query q_name = users.whereEqualTo("name",query);
+
+                // Send query to firebase
                 q_name.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                         List<DocumentSnapshot> friends = queryDocumentSnapshots.getDocuments();
                         if (friends.isEmpty()) {
+                            // No users have the set username, so try email
                             queryEmail(users,query);
                         } else {
+                            // Found user with the id
                             getUserRecursive(friends, new ArrayList<FriendsInfo>());
                         }
                     }
@@ -203,15 +227,11 @@ public class SearchFriendsFragment extends Fragment {
             }
             @Override
             public boolean onQueryTextChange(String newText) {
-                Log.d("STATUS","update");
+                Log.d("STATUS","Query Text Change");
                 progressBar.setVisibility(View.INVISIBLE);
                 return false;
             }
         });
-    }
-
-    private void setUpListeners() {
-        searchQuery();
         mRecyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
             @Override
             public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {

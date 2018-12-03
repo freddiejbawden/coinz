@@ -1,3 +1,10 @@
+/*
+ *  TradeData
+ *
+ *  Container class for trade data
+ *
+ */
+
 package com.example.s1636469.coinz;
 
 import java.util.HashMap;

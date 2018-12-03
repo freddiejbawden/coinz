@@ -1,3 +1,8 @@
+/*
+ *  WalletCurrency
+ *
+ *  Container class for the wallet recycler
+ */
 package com.example.s1636469.coinz;
 
 public class WalletCurrency {

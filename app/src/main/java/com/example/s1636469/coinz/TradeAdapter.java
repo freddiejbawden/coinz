@@ -1,3 +1,8 @@
+/*
+ *  TradeAdapter
+ *
+ *  Adapter for Trade History Recycler
+ */
 package com.example.s1636469.coinz;
 
 import android.content.Context;
