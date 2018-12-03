@@ -1,3 +1,10 @@
+/*
+ *  Bank Info
+ *
+ *  Stores information about currencies to be displayed in
+ *  the recyclerview
+ *
+ */
 package com.example.s1636469.coinz;
 
 public class BankInfo {

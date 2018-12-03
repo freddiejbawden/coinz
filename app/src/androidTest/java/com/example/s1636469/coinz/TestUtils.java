@@ -8,8 +8,11 @@ import android.util.Log;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 
 import java.lang.reflect.Field;
@@ -17,6 +20,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class TestUtils {
 
@@ -54,6 +58,16 @@ public class TestUtils {
             @Override
             public void onFailure(@NonNull Exception e) {
                 Log.w("TestUtils", "Failed to reset", e);
+            }
+        });
+        Query q = database.collection("users").whereEqualTo("name","testuser2");
+        q.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                List<DocumentSnapshot> d_list = queryDocumentSnapshots.getDocuments();
+                String f_id = d_list.get(0).getId();
+                DocumentReference o_ref = database.collection("user").document(f_id);
+                o_ref.delete();
             }
         });
     }

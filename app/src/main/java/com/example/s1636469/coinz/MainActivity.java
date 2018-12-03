@@ -1,24 +1,25 @@
+/*
+ *  MainActivity
+ *
+ *  The primary activity for the game, holds a view pager which displays fragments of the game
+ *
+ */
+
 package com.example.s1636469.coinz;
 
-import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomNavigationView;
-import android.support.v4.app.FragmentActivity;
+
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+
 
 public class MainActivity extends AppCompatActivity
 {
@@ -31,29 +32,28 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "Starting");
-        SharedPreferences sharedPref= getSharedPreferences("combo", 0);
-        SharedPreferences.Editor ed = sharedPref.edit();
-        ed.clear();
-        ed.putInt("combo", 1);
-
-        ed.commit();
-
         setContentView(R.layout.activity_main);
-        Log.d(TAG, "onCreate: Starting");
+        Log.d(TAG, "Starting Main Activity");
 
+        // Set up the fragment manager
         mSecionsPageAdapter = new SectionsPageAdapter(getSupportFragmentManager());
-        mViewPager = (NoSwipingViewPager) findViewById(R.id.container);
+        mViewPager = findViewById(R.id.container);
         setupViewPager(mViewPager);
 
+        setUpBottomNavView();
+
+    }
+    private void setUpBottomNavView() {
+
         //Populate Bottom Naviagation menu
-        BottomNavigationView bnv = (BottomNavigationView) findViewById(R.id.bottomNavigationView);
+        BottomNavigationView bnv = findViewById(R.id.bottomNavigationView);
+
         bnv.setOnNavigationItemSelectedListener(
                 new BottomNavigationView.OnNavigationItemSelectedListener() {
                     @Override
                     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                        // Set up what will happen when a menu item is clicked
                         switch(menuItem.getItemId()) {
                             case (R.id.action_map):
                                 Log.d("UI UPDATE", "map pressed");
@@ -76,6 +76,7 @@ public class MainActivity extends AppCompatActivity
                 }
         );
 
+        // set up view pager to keep track of which page is being viewed
         mViewPager.addOnPageChangeListener(
                 new ViewPager.OnPageChangeListener() {
                     @Override
@@ -90,7 +91,7 @@ public class MainActivity extends AppCompatActivity
                         } else {
                             bnv.getMenu().getItem(0).setChecked(false);
                         }
-                        Log.d("UI UPDATE", "onPageSeleted" + i);
+                        Log.d("UI UPDATE", "onPageSelected" + i);
                         bnv.getMenu().getItem(i).setChecked(true);
                         prevMenuItem = bnv.getMenu().getItem(i);
                     }
@@ -101,12 +102,14 @@ public class MainActivity extends AppCompatActivity
                     }
                 }
         );
-
     }
+
 
     @Override
     protected void onStart() {
         super.onStart();
+
+        // Start Runnable to moniter friends gold value
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
         String u_id = firebaseAuth.getCurrentUser().getUid();
         watcher = new Thread(new FriendWatcher(u_id,watcher));
@@ -115,6 +118,8 @@ public class MainActivity extends AppCompatActivity
 
 
     public void setupViewPager(ViewPager viewPager) {
+
+        // Add Fragments for the viewpager to display
         SectionsPageAdapter adapter = new SectionsPageAdapter((getSupportFragmentManager()));
         adapter.addFragment(new MapFragment(), "MapFragment");
         adapter.addFragment(new WalletFragment(), "WalletFragment");

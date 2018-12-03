@@ -1,3 +1,8 @@
+/*
+ *  Leaderboard Adapter
+ *
+ *  Adapter for the Leaderboard Fragment
+ */
 package com.example.s1636469.coinz;
 
 import android.content.Context;

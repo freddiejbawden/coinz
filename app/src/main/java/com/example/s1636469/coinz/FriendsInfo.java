@@ -1,3 +1,8 @@
+/*
+ *  FriendsInfo
+ *
+ *  Container class for info for the friends recycler
+ */
 package com.example.s1636469.coinz;
 
 import android.graphics.Bitmap;

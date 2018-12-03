@@ -450,6 +450,7 @@ public class BankDespoistEspressoTest {
         onView(withId(R.id.coin_amount_bank)).check(matches(hasErrorText(mActivityTestRule.getActivity().getString(R.string.not_enough_coins))));
 
     }
+
     @Test
     public void userDepoistsCoinsWhenTheyHaveHitLimit() {
         // Added a sleep statement to match the app's execution delay.

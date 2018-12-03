@@ -1,3 +1,11 @@
+/*
+ *  SignInActivity
+ *
+ *  Handles signing in existing users and signing up new ones
+ *
+ */
+
+
 package com.example.s1636469.coinz;
 
 import android.content.Intent;
@@ -48,27 +56,40 @@ public class SignInActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_in);
+
+        // Get a reference to Firebase Authentication
         mAuth = FirebaseAuth.getInstance();
+
+        // Set up references to UI elements
         progressBar = findViewById(R.id.login_progress);
-        progressBar.setVisibility(View.INVISIBLE);
         email_text = findViewById(R.id.email_edit_text);
         password_text = findViewById(R.id.password_edit_text);
+
+        progressBar.setVisibility(View.INVISIBLE);
+
         setUpListeners();
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
+    /*
+     * check_user
+     *
+     * After the user has logged in, perform admin tasks on their account; if this the first log in
+     * of the day, checking if they have provided as username yet
+     *
+     */
     private void check_user(String id,String email) {
+
+        //Get reference to Firebase Firestore
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         DocumentReference u_ref = database.collection("users").document(id);
+
+        // Get the logged in user's details
         u_ref.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 Map<String, Object> u_data = documentSnapshot.getData();
 
+                // Check if the user has not completed account set up
                 if (!documentSnapshot.exists()) {
                     Intent i = new Intent(SignInActivity.this, SetUpAccountActivity.class);
                     i.putExtra("email",email);
@@ -76,6 +97,7 @@ public class SignInActivity extends Activity {
                     return;
                 }
 
+                // Check if this is the first time the user has logged in today
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
                 DateTime last_log = new DateTime((Date) u_data.get("last_login"));
@@ -105,105 +127,155 @@ public class SignInActivity extends Activity {
     }
 
 
+    /*
+     *  onSignInPressed
+     *
+     *  Attempts to log in user using Firebase Authentication
+     *
+     */
+    private void onSignInPressed() {
+
+        progressBar.setVisibility(View.VISIBLE);
+
+
+        String email = ((TextView) findViewById(R.id.email_edit_text)).getText().toString();
+        String password = ((TextView) findViewById(R.id.password_edit_text)).getText().toString();
+
+        if (email.isEmpty()) {
+            email_text.setError(getString(R.string.no_email));
+            email_text.requestFocus();
+            progressBar.setVisibility(View.INVISIBLE);
+            return;
+        }
+        if (password.isEmpty()) {
+            password_text.setError(getString(R.string.no_password));
+            password_text.requestFocus();
+            progressBar.setVisibility(View.INVISIBLE);
+            return;
+        }
+
+
+        //Sign in user using provided email and password
+        mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+
+                // Check if log in was successful
+                if (task.isSuccessful()) {
+                    Log.d(TAG, "signed in");
+
+                    // perform admin tasks before loading the main app
+                    check_user(mAuth.getCurrentUser().getUid(),email);
+                } else {
+                    Toast.makeText(getApplicationContext(),"Authentication Failed",Toast.LENGTH_SHORT).show();
+                    progressBar.setVisibility(View.INVISIBLE);
+
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+
+                // Find out why the user could not be logged in and inform user
+                if (e instanceof FirebaseAuthInvalidCredentialsException) {
+                    Log.d(TAG,"User did not enter a correctly formed email or password");
+                    Toast.makeText(getApplicationContext(), R.string.bad_email_password,
+                            Toast.LENGTH_SHORT).show();
+                    progressBar.setVisibility(View.INVISIBLE);
+                } else {
+                    Log.w(TAG, "A uncaught exception was thrown",e);
+                    progressBar.setVisibility(View.INVISIBLE);
+                }
+            }
+        });
+    }
+
+
+    /*
+     * onSignUpPressed
+     *
+     *  Attempts to create a new account in Firebase Authentication then continue to account set up
+     *
+     */
+    private void onSignUpPressed() {
+
+        progressBar.setVisibility(View.VISIBLE);
+
+        String email = email_text.getText().toString();
+        String password = password_text.getText().toString();
+        if (email.isEmpty()) {
+            email_text.setError(getString(R.string.no_email));
+            email_text.requestFocus();
+            progressBar.setVisibility(View.INVISIBLE);
+            return;
+        }
+        if (password.isEmpty()) {
+            password_text.setError(getString(R.string.no_password));
+            password_text.requestFocus();
+            progressBar.setVisibility(View.INVISIBLE);
+            return;
+        }
+
+        // Create user with Firebase Authentication using the provided details
+        mAuth.createUserWithEmailAndPassword(email,password)
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+
+                        // Check the account was created successfully
+                        if (task.isSuccessful()) {
+                            Log.d(TAG, "created user");
+
+                            // Change to the Set Up Account UI
+                            Intent i = new Intent(SignInActivity.this, SetUpAccountActivity.class);
+                            i.putExtra("email",email);
+                            startActivity(i);
+                        } else {
+
+                            // Inform the user what was wrong with their input
+                            Exception e = task.getException();
+                            if (e instanceof FirebaseAuthUserCollisionException) {
+                                Log.d(TAG, "User collision on sign up");
+                                email_text.setError(getString(R.string.email_taken));
+                                email_text.requestFocus();
+                                progressBar.setVisibility(View.INVISIBLE);
+                            } else if (e instanceof FirebaseAuthInvalidCredentialsException) {
+
+                                // We put a toast here since it is not clear whether the email or
+                                // password caused the error, thus focused error messages could be
+                                // misleading
+                                Log.d(TAG,"User did not enter a correctly formed email or password");
+                                Toast.makeText(getApplicationContext(), R.string.bad_email_password,
+                                        Toast.LENGTH_SHORT).show();
+                                progressBar.setVisibility(View.INVISIBLE);
+                            } else {
+                                Log.w(TAG, "A uncaught exception was thrown",e);
+                                progressBar.setVisibility(View.INVISIBLE);
+                            }
+                        }
+                    }
+                });
+    }
+
+    /*
+     *  setUpListeners
+     *
+     *  Connects button's to their respective on click functions
+     *
+     */
     private void setUpListeners() {
         Button signInButton = (Button) findViewById(R.id.signin_button);
         signInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                progressBar.setVisibility(View.VISIBLE);
-                String email = ((TextView) findViewById(R.id.email_edit_text)).getText().toString();
-                String password = ((TextView) findViewById(R.id.password_edit_text)).getText().toString();
-                if (email.isEmpty()) {
-                    email_text.setError(getString(R.string.no_email));
-                    email_text.requestFocus();
-                    progressBar.setVisibility(View.INVISIBLE);
-                    return;
-                }
-                if (password.isEmpty()) {
-                    password_text.setError(getString(R.string.no_password));
-                    password_text.requestFocus();
-                    progressBar.setVisibility(View.INVISIBLE);
-                    return;
-                }
-                mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // we have been logged in!
-                            //TODO: disable buttons
-
-                            Log.d(TAG, "signed in");
-                            check_user(mAuth.getCurrentUser().getUid(),email);
-                            // pass to another intent
-                        } else {
-                            Toast.makeText(getApplicationContext(),"Authentication Failed",Toast.LENGTH_SHORT).show();
-                            progressBar.setVisibility(View.INVISIBLE);
-
-                        }
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        if (e instanceof FirebaseAuthInvalidCredentialsException) {
-                            Log.d(TAG,"User did not enter a correctly formed email or password");
-                            Toast.makeText(getApplicationContext(), R.string.bad_email_password,
-                                    Toast.LENGTH_SHORT).show();
-                            progressBar.setVisibility(View.INVISIBLE);
-                        } else {
-                            Log.w(TAG, "A uncaught exception was thrown",e);
-                            progressBar.setVisibility(View.INVISIBLE);
-                        }
-                    }
-                });
+               onSignInPressed();
             }
         });
         Button signUpButton = (Button) findViewById(R.id.signup_button);
         signUpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                progressBar.setVisibility(View.VISIBLE);
-                String email = email_text.getText().toString();
-                String password = password_text.getText().toString();
-                if (email.isEmpty()) {
-                    email_text.setError(getString(R.string.no_email));
-                    email_text.requestFocus();
-                    progressBar.setVisibility(View.INVISIBLE);
-                    return;
-                }
-                if (password.isEmpty()) {
-                    password_text.setError(getString(R.string.no_password));
-                    password_text.requestFocus();
-                    progressBar.setVisibility(View.INVISIBLE);
-                    return;
-                }
-                mAuth.createUserWithEmailAndPassword(email,password)
-                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                if (task.isSuccessful()) {
-                                    Log.d(TAG, "created user");
-                                    Intent i = new Intent(SignInActivity.this, SetUpAccountActivity.class);
-                                    i.putExtra("email",email);
-                                    startActivity(i);
-                                } else {
-                                    Exception e = task.getException();
-                                    if (e instanceof FirebaseAuthUserCollisionException) {
-                                        Log.d(TAG, "User collision on sign up");
-                                        email_text.setError(getString(R.string.email_taken));
-                                        email_text.requestFocus();
-                                        progressBar.setVisibility(View.INVISIBLE);
-                                    } else if (e instanceof FirebaseAuthInvalidCredentialsException) {
-                                        Log.d(TAG,"User did not enter a correctly formed email or password");
-                                        Toast.makeText(getApplicationContext(), R.string.bad_email_password,
-                                                Toast.LENGTH_SHORT).show();
-                                        progressBar.setVisibility(View.INVISIBLE);
-                                    } else {
-                                        Log.w(TAG, "A uncaught exception was thrown",e);
-                                        progressBar.setVisibility(View.INVISIBLE);
-                                    }
-                                }
-                            }
-                        });
+                onSignUpPressed();
             }
         });
 

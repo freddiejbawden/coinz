@@ -1,3 +1,10 @@
+/*
+ *  FriendListAdapter
+ *
+ *  Adapter for Friend List Recyceler View
+ */
+
+
 package com.example.s1636469.coinz;
 
 import android.content.Context;
@@ -12,7 +19,6 @@ import com.mikhaellopez.circularimageview.CircularImageView;
 
 import java.util.List;
 
-import static android.app.PendingIntent.getActivity;
 
 public class FriendListAdapter extends RecyclerView.Adapter<FriendListAdapter.ViewHolder> {
 
@@ -53,8 +59,6 @@ public class FriendListAdapter extends RecyclerView.Adapter<FriendListAdapter.Vi
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView username;
         CircularImageView circularImageView;
-        private SectionsPageAdapter mAdapter;
-        private String TAG ="Holder";
 
         ViewHolder(View itemView) {
             super(itemView);
@@ -75,10 +79,6 @@ public class FriendListAdapter extends RecyclerView.Adapter<FriendListAdapter.Vi
         return mData.get(id);
     }
 
-    // allows clicks events to be caught
-    void setClickListener(ItemClickListener itemClickListener) {
-        this.mClickListener = itemClickListener;
-    }
 
     // parent activity will implement this method to respond to click events
     public interface ItemClickListener {

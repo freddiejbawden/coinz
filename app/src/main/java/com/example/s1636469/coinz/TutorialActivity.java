@@ -1,3 +1,9 @@
+/*
+ *  TutorialActivity
+ *
+ *  Provides instructions on how to play the game when first logging in
+ */
+
 package com.example.s1636469.coinz;
 
 import android.app.Activity;
@@ -20,10 +26,14 @@ public class TutorialActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tutorial);
-        tutorialText = (TextView) findViewById(R.id.tutorial_info);
+
+        // get references to UI elements
+        tutorialText = findViewById(R.id.tutorial_info);
+        continueButton = (Button) findViewById(R.id.continue_button);
+
+        // Set up UI elements
         tutorialText.setText(getString(R.string.tutorial_text_1));
 
-        continueButton = (Button) findViewById(R.id.continue_button);
         continueButton.setText(getString(R.string.tutorial_button_1));
         continueButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -31,20 +41,29 @@ public class TutorialActivity extends Activity {
                 updateText();
             }
         });
-        progressBar = (ProgressBar) findViewById(R.id.tut_progress);
+
+        progressBar = findViewById(R.id.tut_progress);
     }
+    /*
+     *  updateText
+     *
+     *  Cycle the tutorial text, if the user has reached the end, start the main activity
+     */
 
     private void updateText() {
         section++;
+
         if (section > 3) {
             progressBar.setVisibility(View.VISIBLE);
 
             tutorialText.setVisibility(View.INVISIBLE);
             continueButton.setVisibility(View.INVISIBLE);
 
+            // Start the main activity
             Intent i = new Intent(TutorialActivity.this, MainActivity.class);
             startActivity(i);
         } else {
+            // Change the text displayed
             if (section == 2) {
                 tutorialText.setText(getString(R.string.tutorial_text_2));
                 continueButton.setText(getString(R.string.tutorial_button_2));

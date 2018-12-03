@@ -1,3 +1,10 @@
+/*
+ * BankValuesAdapter
+ *
+ *  Adapter for the bank balance recycler views
+ *
+ */
+
 package com.example.s1636469.coinz;
 
 import android.content.Context;
@@ -7,7 +14,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.List;
 
@@ -18,6 +24,7 @@ public class BankValuesAdapter extends RecyclerView.Adapter<BankValuesAdapter.Vi
     private LayoutInflater mInflater;
     private BankValuesAdapter.ItemClickListener mClickListener;
     private Context c;
+    private String TAG = "BankValuesAdapter";
     // data is passed into the constructor
     BankValuesAdapter(Context context, List<BankInfo> data) {
         this.c =context;
@@ -36,10 +43,13 @@ public class BankValuesAdapter extends RecyclerView.Adapter<BankValuesAdapter.Vi
     // binds the data to the TextView in each row
     @Override
     public void onBindViewHolder(BankValuesAdapter.ViewHolder holder, int position) {
-        Log.d("BANK ADAPTER",mData.toString());
+        Log.d(TAG,mData.toString());
         BankInfo bankInfo = mData.get(position);
         holder.currencyTypeTextView.setText(bankInfo.getCurrency());
         holder.currencyValueTextView.setText(""+Config.round(bankInfo.getValue(),Config.CUR_VALUE_DP));
+
+        // If the bank has changed by a tiny amount set the change to 0 to avoid
+        // e values
         if (bankInfo.getChange() < 1e-3 && bankInfo.getChange() > -1e-3) {
             holder.currencyValueChangeTextView.setText("0");
             holder.currencyValueChangeTextView.setTextColor(c.getColor(R.color.colorTrendUnknown));
@@ -52,14 +62,23 @@ public class BankValuesAdapter extends RecyclerView.Adapter<BankValuesAdapter.Vi
             }
         }
     }
-    // total number of rows
+    /*
+     * getItemCount
+     *
+     * Returns total number of rows
+     */
     @Override
     public int getItemCount() {
         return mData.size();
     }
 
-
-    // stores and recycles views as they are scrolled off screen
+    /*
+     *  ViewHolder
+     *
+     *  Creates rows from information
+     *
+     *
+     */
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView currencyTypeTextView;
         TextView currencyValueTextView;
@@ -79,17 +98,12 @@ public class BankValuesAdapter extends RecyclerView.Adapter<BankValuesAdapter.Vi
         }
     }
 
-    // convenience method for getting data at click position
-    BankInfo getItem(int id) {
-        return mData.get(id);
-    }
-
-    // allows clicks events to be caught
-    void setClickListener(BankValuesAdapter.ItemClickListener itemClickListener) {
-        this.mClickListener = itemClickListener;
-    }
-
-    // parent activity will implement this method to respond to click events
+    /*
+     *  ItemClickListener
+     *
+     *  abstract function for activities to implement
+     *
+     */
     public interface ItemClickListener {
         void onItemClick(View view, int position);
     }

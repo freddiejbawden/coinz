@@ -1,12 +1,13 @@
+/*
+ *  Config Class for the App
+ */
 package com.example.s1636469.coinz;
 
 import android.graphics.Color;
-import android.util.Log;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 
 public class Config {
@@ -23,15 +24,9 @@ public class Config {
     public static final int QUID_COLOR = Color.BLUE;
     public static final int DOLR_COLOR  = Color.GREEN;
     public static final int PENY_COLOR  = Color.CYAN;
-    public static final int NEAR_COLOR  = Color.YELLOW;
     public static final String[] currencies = new String[] {"PENY","DOLR","QUID","SHIL"};
-    public static final String GEOJSON_LOCAL_FILE = "map_points.txt";
 
-    public static final HashMap<Integer, Integer> combo_times = new HashMap<Integer, Integer>() {{
-        put(2, 15000);
-        put(3, 10000);
-        put(4, 5000);
-    }};
+    public static final String mapbox_key = "pk.eyJ1IjoiZnJlZGRpZWpiYXdkZW4iLCJhIjoiY2ptb3NtZHhrMDAwazNwbDgzM2l4YjI1MSJ9.zCqzFmwVZoUGtTJgeZOMTw";
 
     public static final HashMap<String, Object> blank_user_profile = new HashMap<String, Object>() {{
         put("DOLR",0);
