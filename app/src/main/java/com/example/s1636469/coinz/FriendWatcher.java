@@ -22,7 +22,7 @@ import java.util.Map;
 
 public class FriendWatcher implements Runnable {
 
-    protected static boolean STOP_FLAG = true;
+    protected static boolean STOP_FLAG = false;
     private String id;
     private String TAG = "FriendWatcher";
     private Thread thread;
@@ -72,6 +72,7 @@ public class FriendWatcher implements Runnable {
     }
     @Override
     public void run() {
+
         while (STOP_FLAG) {
             Log.d(TAG,"Updating");
             FirebaseFirestore database = FirebaseFirestore.getInstance();

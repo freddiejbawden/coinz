@@ -17,6 +17,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="PENY"
+            android:textAlignment="center"
             android:textSize="20sp" />
 
         <Space
@@ -30,6 +31,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="0.0111"
+            android:textAlignment="center"
             android:textSize="20sp" />
 
     </LinearLayout>

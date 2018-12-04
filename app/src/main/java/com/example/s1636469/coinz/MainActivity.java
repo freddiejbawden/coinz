@@ -44,6 +44,9 @@ public class MainActivity extends AppCompatActivity
         setUpBottomNavView();
 
     }
+
+
+
     private void setUpBottomNavView() {
 
         //Populate Bottom Naviagation menu
@@ -108,6 +111,7 @@ public class MainActivity extends AppCompatActivity
     protected void onStop() {
         super.onStop();
         FriendWatcher.STOP_FLAG = false;
+
     }
 
     @Override
@@ -119,6 +123,13 @@ public class MainActivity extends AppCompatActivity
         String u_id = firebaseAuth.getCurrentUser().getUid();
         watcher = new Thread(new FriendWatcher(u_id,watcher));
         watcher.start();
+        FriendWatcher.STOP_FLAG = true;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        FriendWatcher.STOP_FLAG = false;
     }
 
 

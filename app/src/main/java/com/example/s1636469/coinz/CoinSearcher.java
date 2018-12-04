@@ -81,7 +81,12 @@ public class CoinSearcher extends AsyncTask<Location, Void, Void> {
                 ArrayList<String> collected = (ArrayList<String>) user_data.get("collected");
                 ArrayList<String> nearbyIds = new ArrayList<>();
                 HashMap<String, Object> to_put = new HashMap<>();
-
+                HashMap<String, Double> coin_count = new HashMap<String, Double>() {{
+                    put("PENY",0.0);
+                    put("DOLR",0.0);
+                    put("QUID",0.0);
+                    put("SHIL",0.0);
+                }};
 
                 Set<String> coin_ids = MapPoints.coins.keySet();
 
@@ -96,7 +101,7 @@ public class CoinSearcher extends AsyncTask<Location, Void, Void> {
                         Log.d(TAG,nearbyCoin.getId());
                         double val = nearbyCoin.getValue();
                         String cur = nearbyCoin.getCurrency();
-
+                        coin_count.put(cur, coin_count.get(cur) + val);
                         double cur_val;
                         try {
                             cur_val = (Double) (user_data.get(cur));
@@ -114,6 +119,17 @@ public class CoinSearcher extends AsyncTask<Location, Void, Void> {
                 for (String id : nearbyIds) {
                     mapboxMap.removeMarker(MapPoints.markers.get(id).getMarker());
                     MapPoints.coins.remove(id);
+                }
+                if (!nearbyIds.isEmpty()) {
+                    String to_display = "Coins collected:";
+                    for (String cur : Config.currencies) {
+                        if (coin_count.get(cur) > 0) {
+                            Log.d(TAG, cur);
+                            String amount_string = Config.round(coin_count.get(cur),Config.CUR_VALUE_DP) + "";
+                            to_display = to_display + "\n" + cur + ": " + amount_string;
+                        }
+                    }
+                    Toast.makeText(activity,to_display, Toast.LENGTH_LONG).show();
                 }
                 collected.addAll(nearbyIds);
                 to_put.put("collected",collected);
