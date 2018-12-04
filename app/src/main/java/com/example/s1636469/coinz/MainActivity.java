@@ -104,12 +104,17 @@ public class MainActivity extends AppCompatActivity
         );
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        FriendWatcher.STOP_FLAG = false;
+    }
 
     @Override
     protected void onStart() {
         super.onStart();
 
-        // Start Runnable to moniter friends gold value
+        // Start Runnable to monitor friends gold value
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
         String u_id = firebaseAuth.getCurrentUser().getUid();
         watcher = new Thread(new FriendWatcher(u_id,watcher));

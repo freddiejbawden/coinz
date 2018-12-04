@@ -22,8 +22,7 @@ import java.util.Map;
 
 public class FriendWatcher implements Runnable {
 
-    private static boolean STOP_FLAG = true;
-
+    protected static boolean STOP_FLAG = true;
     private String id;
     private String TAG = "FriendWatcher";
     private Thread thread;
@@ -47,6 +46,12 @@ public class FriendWatcher implements Runnable {
                 public void onSuccess(DocumentSnapshot documentSnapshot) {
                     Map<String, Object> friend_data = documentSnapshot.getData();
                     Double new_gold;
+                    if (friend_data == null) {
+                        Log.d(TAG, "Unable to get friend data!");
+                        documentSnapshotList.remove(0);
+                        updateGold(documentSnapshotList,database,user_f_ref);
+                        return;
+                    }
                     try {
                         new_gold = (Double) friend_data.get("GOLD");
                     } catch (ClassCastException e) {

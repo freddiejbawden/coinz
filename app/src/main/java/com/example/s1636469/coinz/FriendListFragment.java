@@ -186,6 +186,7 @@ public class FriendListFragment extends Fragment {
 
     // TODO: Add to the viewholder
     public void getImageRecursive(List<DocumentSnapshot> l_friends, ArrayList<FriendsInfo> toAdd, Context c) {
+
         if (l_friends.isEmpty()) {
             Log.d("STATUS","Empty");
             data.clear();

@@ -27,6 +27,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -156,21 +157,10 @@ public class SignInActivity extends Activity {
 
 
         //Sign in user using provided email and password
-        mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+        mAuth.signInWithEmailAndPassword(email,password).addOnSuccessListener(new OnSuccessListener<AuthResult>() {
             @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-
-                // Check if log in was successful
-                if (task.isSuccessful()) {
-                    Log.d(TAG, "signed in");
-
-                    // perform admin tasks before loading the main app
-                    check_user(mAuth.getCurrentUser().getUid(),email);
-                } else {
-                    Toast.makeText(getApplicationContext(),"Authentication Failed",Toast.LENGTH_SHORT).show();
-                    progressBar.setVisibility(View.INVISIBLE);
-
-                }
+            public void onSuccess(AuthResult authResult) {
+                check_user(authResult.getUser().getUid(), email);
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -181,11 +171,13 @@ public class SignInActivity extends Activity {
                     Log.d(TAG,"User did not enter a correctly formed email or password");
                     Toast.makeText(getApplicationContext(), R.string.bad_email_password,
                             Toast.LENGTH_SHORT).show();
-                    progressBar.setVisibility(View.INVISIBLE);
+                } else if (e instanceof FirebaseAuthInvalidUserException){
+                    email_text.setError(getString(R.string.no_user_with_account));
+                    email_text.requestFocus();
                 } else {
                     Log.w(TAG, "A uncaught exception was thrown",e);
-                    progressBar.setVisibility(View.INVISIBLE);
                 }
+                progressBar.setVisibility(View.INVISIBLE);
             }
         });
     }

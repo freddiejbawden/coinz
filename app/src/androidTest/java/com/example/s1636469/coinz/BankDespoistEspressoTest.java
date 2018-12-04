@@ -71,7 +71,7 @@ public class BankDespoistEspressoTest {
                                         0),
                                 5),
                         isDisplayed()));
-        editText.perform(replaceText("test@test.com"), closeSoftKeyboard());
+        editText.perform(replaceText(TestUtils.TEST_EMAIL), closeSoftKeyboard());
 
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
@@ -90,7 +90,7 @@ public class BankDespoistEspressoTest {
                                         0),
                                 4),
                         isDisplayed()));
-        editText2.perform(replaceText("test_password"), closeSoftKeyboard());
+        editText2.perform(replaceText(TestUtils.TEST_PASSWORD), closeSoftKeyboard());
 
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
@@ -162,7 +162,7 @@ public class BankDespoistEspressoTest {
                                         0),
                                 5),
                         isDisplayed()));
-        editText.perform(replaceText("test@test.com"), closeSoftKeyboard());
+        editText.perform(replaceText(TestUtils.TEST_EMAIL), closeSoftKeyboard());
 
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
@@ -181,7 +181,7 @@ public class BankDespoistEspressoTest {
                                         0),
                                 4),
                         isDisplayed()));
-        editText2.perform(replaceText("test_password"), closeSoftKeyboard());
+        editText2.perform(replaceText(TestUtils.TEST_PASSWORD), closeSoftKeyboard());
 
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
@@ -263,7 +263,7 @@ public class BankDespoistEspressoTest {
                                         0),
                                 5),
                         isDisplayed()));
-        editText.perform(replaceText("test@test.com"), closeSoftKeyboard());
+        editText.perform(replaceText(TestUtils.TEST_EMAIL), closeSoftKeyboard());
 
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
@@ -282,7 +282,7 @@ public class BankDespoistEspressoTest {
                                         0),
                                 4),
                         isDisplayed()));
-        editText2.perform(replaceText("test_password"), closeSoftKeyboard());
+        editText2.perform(replaceText(TestUtils.TEST_PASSWORD), closeSoftKeyboard());
 
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
@@ -364,7 +364,7 @@ public class BankDespoistEspressoTest {
                                         0),
                                 5),
                         isDisplayed()));
-        editText.perform(replaceText("test@test.com"), closeSoftKeyboard());
+        editText.perform(replaceText(TestUtils.TEST_EMAIL), closeSoftKeyboard());
 
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
@@ -383,7 +383,7 @@ public class BankDespoistEspressoTest {
                                         0),
                                 4),
                         isDisplayed()));
-        editText2.perform(replaceText("test_password"), closeSoftKeyboard());
+        editText2.perform(replaceText(TestUtils.TEST_PASSWORD), closeSoftKeyboard());
 
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:

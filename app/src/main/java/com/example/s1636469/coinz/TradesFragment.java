@@ -152,7 +152,11 @@ public class TradesFragment extends Fragment {
                     }
                     String amount = value.toString();
                     String cur =   (String) trade_data.get("currency");
-                    toAdd.add(new TradeData(sent_by_user, u_name, other_user, amount,cur));
+                    if (sent_by_user) {
+                        toAdd.add(new TradeData(sent_by_user, u_name, other_user, amount,cur));
+                    } else {
+                        toAdd.add(new TradeData(sent_by_user, other_user, u_name, amount,cur));
+                    }
                 }
 
                 // Update recycler view

@@ -77,8 +77,13 @@ public class SearchFriendsFragment extends Fragment {
         // set up failure text
         failText = rootView.findViewById(R.id.friends_search_fail_text);
         failText.setVisibility(View.INVISIBLE);
-
-        searchView = rootView.findViewById(R.id.search_friends_list);
+        Activity a = getActivity();
+        if (a == null) {
+            Toast.makeText(getContext(), "Unable to search at the moment please try again " +
+                    "later", Toast.LENGTH_SHORT).show();
+            return rootView;
+        }
+        searchView = getActivity().findViewById(R.id.searchView);
 
         setUpListeners();
         return rootView;
@@ -199,7 +204,7 @@ public class SearchFriendsFragment extends Fragment {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-
+                failText.setVisibility(View.INVISIBLE);
                 progressBar.setVisibility(View.VISIBLE);
 
                 Log.d("STATUS","Search");

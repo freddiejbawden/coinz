@@ -1,8 +1,10 @@
 package com.example.s1636469.coinz;
 
 
+import android.Manifest;
 import android.support.test.espresso.ViewInteraction;
 import android.support.test.rule.ActivityTestRule;
+import android.support.test.rule.GrantPermissionRule;
 import android.support.test.runner.AndroidJUnit4;
 
 
@@ -41,6 +43,8 @@ public class TradeSendEspressoTest {
     @Rule
     public ActivityTestRule<SignInActivity> mActivityTestRule = new ActivityTestRule<>(SignInActivity.class);
 
+    @Rule
+    public GrantPermissionRule mRuntimePermissionRule = GrantPermissionRule.grant(Manifest.permission.ACCESS_FINE_LOCATION);
 
     @After
     public void reset() {
@@ -66,7 +70,7 @@ public class TradeSendEspressoTest {
                                         0),
                                 5),
                         isDisplayed()));
-        editText.perform(replaceText("test@test.com"), closeSoftKeyboard());
+        editText.perform(replaceText(TestUtils.TEST_EMAIL), closeSoftKeyboard());
 
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
@@ -85,7 +89,7 @@ public class TradeSendEspressoTest {
                                         0),
                                 4),
                         isDisplayed()));
-        editText2.perform(replaceText("test_password"), closeSoftKeyboard());
+        editText2.perform(replaceText(TestUtils.TEST_PASSWORD), closeSoftKeyboard());
 
 
         ViewInteraction button = onView(
@@ -200,7 +204,7 @@ public class TradeSendEspressoTest {
                                         0),
                                 5),
                         isDisplayed()));
-        editText.perform(replaceText("test@test.com"), closeSoftKeyboard());
+        editText.perform(replaceText(TestUtils.TEST_EMAIL), closeSoftKeyboard());
 
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
@@ -219,7 +223,7 @@ public class TradeSendEspressoTest {
                                         0),
                                 4),
                         isDisplayed()));
-        editText2.perform(replaceText("test_password"), closeSoftKeyboard());
+        editText2.perform(replaceText(TestUtils.TEST_PASSWORD), closeSoftKeyboard());
 
 
         ViewInteraction button = onView(
@@ -334,7 +338,7 @@ public class TradeSendEspressoTest {
                                         0),
                                 5),
                         isDisplayed()));
-        editText.perform(replaceText("test@test.com"), closeSoftKeyboard());
+        editText.perform(replaceText(TestUtils.TEST_EMAIL), closeSoftKeyboard());
 
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
@@ -353,7 +357,7 @@ public class TradeSendEspressoTest {
                                         0),
                                 4),
                         isDisplayed()));
-        editText2.perform(replaceText("test_password"), closeSoftKeyboard());
+        editText2.perform(replaceText(TestUtils.TEST_PASSWORD), closeSoftKeyboard());
 
 
         ViewInteraction button = onView(
@@ -486,7 +490,7 @@ public class TradeSendEspressoTest {
                                         0),
                                 5),
                         isDisplayed()));
-        editText.perform(replaceText("test@test.com"), closeSoftKeyboard());
+        editText.perform(replaceText(TestUtils.TEST_EMAIL), closeSoftKeyboard());
 
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
@@ -505,7 +509,7 @@ public class TradeSendEspressoTest {
                                         0),
                                 4),
                         isDisplayed()));
-        editText2.perform(replaceText("test_password"), closeSoftKeyboard());
+        editText2.perform(replaceText(TestUtils.TEST_PASSWORD), closeSoftKeyboard());
 
 
         ViewInteraction button = onView(
@@ -620,7 +624,7 @@ public class TradeSendEspressoTest {
                                         0),
                                 5),
                         isDisplayed()));
-        editText.perform(replaceText("test@test.com"), closeSoftKeyboard());
+        editText.perform(replaceText(TestUtils.TEST_EMAIL), closeSoftKeyboard());
 
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
@@ -639,7 +643,7 @@ public class TradeSendEspressoTest {
                                         0),
                                 4),
                         isDisplayed()));
-        editText2.perform(replaceText("test_password"), closeSoftKeyboard());
+        editText2.perform(replaceText(TestUtils.TEST_PASSWORD), closeSoftKeyboard());
 
 
         ViewInteraction button = onView(
@@ -752,7 +756,7 @@ public class TradeSendEspressoTest {
                                         0),
                                 5),
                         isDisplayed()));
-        editText.perform(replaceText("test@test.com"), closeSoftKeyboard());
+        editText.perform(replaceText(TestUtils.TEST_EMAIL), closeSoftKeyboard());
 
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
@@ -771,7 +775,7 @@ public class TradeSendEspressoTest {
                                         0),
                                 4),
                         isDisplayed()));
-        editText2.perform(replaceText("test_password"), closeSoftKeyboard());
+        editText2.perform(replaceText(TestUtils.TEST_PASSWORD), closeSoftKeyboard());
 
 
         ViewInteraction button = onView(
@@ -863,7 +867,7 @@ public class TradeSendEspressoTest {
                                         0),
                                 5),
                         isDisplayed()));
-        editText.perform(replaceText("test@test.com"), closeSoftKeyboard());
+        editText.perform(replaceText(TestUtils.TEST_EMAIL), closeSoftKeyboard());
 
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
@@ -882,7 +886,7 @@ public class TradeSendEspressoTest {
                                         0),
                                 4),
                         isDisplayed()));
-        editText2.perform(replaceText("test_password"), closeSoftKeyboard());
+        editText2.perform(replaceText(TestUtils.TEST_PASSWORD), closeSoftKeyboard());
 
 
         ViewInteraction button = onView(

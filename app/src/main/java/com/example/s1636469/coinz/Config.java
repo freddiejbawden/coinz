@@ -14,7 +14,6 @@ public class Config {
 
     public static final int PICK_IMAGE = 1;
 
-
     public static final int ONE_MEGABYTE = 1024*1024;
     public static final double TOTAL_COINS_PER_DAY = 25;
     public static final int CUR_VALUE_DP = 4;

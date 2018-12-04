@@ -63,6 +63,9 @@
     <string name="no_trades">
         You don\'t have any trades to show, try sending some coinz to another user button below
     </string>
+    <string name="no_user_with_account">
+        No account with this email
+    </string>
     <string name="bad_email_password">
         Please enter a valid email and password
     </string>
@@ -117,5 +120,6 @@
     <string name="user_not_found">
         User not found
     </string>
+
 
 </resources>

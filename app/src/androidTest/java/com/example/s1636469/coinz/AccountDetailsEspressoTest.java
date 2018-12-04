@@ -109,7 +109,7 @@ public class AccountDetailsEspressoTest {
                         String id = auth.getCurrentUser().getUid();
                         FirebaseFirestore database = FirebaseFirestore.getInstance();
                         HashMap<String, Object> reset = new HashMap<String, Object>();
-                        reset.put("name","testuser");
+                        reset.put("name",TestUtils.TEST_USERNAME);
                         database.collection("users").document(id).set(reset, SetOptions.merge());
                     }
                 });

@@ -1,12 +1,14 @@
 package com.example.s1636469.coinz;
 
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.WifiManager;
 import android.os.SystemClock;
 import android.support.test.espresso.intent.Intents;
 import android.support.test.rule.ActivityTestRule;
+import android.support.test.rule.GrantPermissionRule;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -47,6 +49,9 @@ public class SignInEspressoTest {
     public ActivityTestRule<SignInActivity> mActivityRule =
             new ActivityTestRule<>(SignInActivity.class);
 
+    @Rule
+    public GrantPermissionRule mRuntimePermissionRule = GrantPermissionRule.grant(Manifest.permission.ACCESS_FINE_LOCATION);
+
     @Test
     public void userEntersAValidEmail() {
         onView(withId(R.id.email_edit_text))
@@ -59,6 +64,23 @@ public class SignInEspressoTest {
         intended(hasComponent(MainActivity.class.getName()));
 
     }
+
+    @Test
+    public void userEntersAnEmailWithNoAccount() {
+        onView(withId(R.id.email_edit_text))
+                .perform(typeText(TestUtils.randomAlphaNumeric(6) + "@test.com"),closeSoftKeyboard());
+        onView(withId(R.id.password_edit_text))
+                .perform(typeText(TestUtils.TEST_PASSWORD),closeSoftKeyboard());
+        onView(withId(R.id.signin_button))
+                .perform(click());
+        SystemClock.sleep(5000);
+
+        onView(withId(R.id.email_edit_text))
+                .check(matches(hasErrorText(mActivityRule.getActivity().getString(R.string.no_user_with_account))));
+        onView(withId(R.id.login_progress))
+                .check(matches(not(isDisplayed())));
+    }
+
     @Test
     public void userEntersABadFormattedEmail() {
 

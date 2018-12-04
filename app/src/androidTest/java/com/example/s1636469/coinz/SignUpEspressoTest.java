@@ -1,9 +1,11 @@
 package com.example.s1636469.coinz;
 
 
+import android.Manifest;
 import android.os.SystemClock;
 import android.support.test.espresso.intent.Intents;
 import android.support.test.rule.ActivityTestRule;
+import android.support.test.rule.GrantPermissionRule;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.google.firebase.auth.AuthCredential;
@@ -45,6 +47,9 @@ public class SignUpEspressoTest {
     public ActivityTestRule<SignInActivity> mActivityRule =
             new ActivityTestRule<>(SignInActivity.class);
 
+    @Rule
+    public GrantPermissionRule mRuntimePermissionRule = GrantPermissionRule.grant(Manifest.permission.ACCESS_FINE_LOCATION);
+
     @Test
     public void userEntersAValidEmailAndPassword() {
         String u_name = TestUtils.randomAlphaNumeric(7);
@@ -64,13 +69,14 @@ public class SignUpEspressoTest {
         u.delete();
 
     }
+
     @Test
     public void userEntersABadFormattedEmail() {
 
         onView(withId(R.id.email_edit_text))
                 .perform(typeText("testtest.com"),closeSoftKeyboard());
         onView(withId(R.id.password_edit_text))
-                .perform(typeText("test_password"),closeSoftKeyboard());
+                .perform(typeText(TestUtils.TEST_PASSWORD),closeSoftKeyboard());
         onView(withId(R.id.signup_button))
                 .perform(click());
         SystemClock.sleep(500);
@@ -86,7 +92,7 @@ public class SignUpEspressoTest {
     public void userEntersABadFormattedPassword() {
 
         onView(withId(R.id.email_edit_text))
-                .perform(typeText("test@test.com"),closeSoftKeyboard());
+                .perform(typeText(TestUtils.TEST_EMAIL),closeSoftKeyboard());
         onView(withId(R.id.password_edit_text))
                 .perform(typeText("1"),closeSoftKeyboard());
         onView(withId(R.id.signup_button))
@@ -104,7 +110,7 @@ public class SignUpEspressoTest {
 
 
         onView(withId(R.id.password_edit_text))
-                .perform(typeText("test_password"),closeSoftKeyboard());
+                .perform(typeText(TestUtils.TEST_PASSWORD),closeSoftKeyboard());
         onView(withId(R.id.signup_button))
                 .perform(click());
         SystemClock.sleep(500);
@@ -118,7 +124,7 @@ public class SignUpEspressoTest {
     public void userEntersNoPassword() {
 
         onView(withId(R.id.email_edit_text))
-                .perform(typeText("test@test.com"),closeSoftKeyboard());
+                .perform(typeText(TestUtils.TEST_EMAIL),closeSoftKeyboard());
         onView(withId(R.id.signup_button))
                 .perform(click());
         SystemClock.sleep(500);
@@ -132,9 +138,9 @@ public class SignUpEspressoTest {
     @Test
     public void userEntersAUserNameThatIsAlreadyTaken() {
         onView(withId(R.id.email_edit_text))
-                .perform(typeText("test@test.com"),closeSoftKeyboard());
+                .perform(typeText(TestUtils.TEST_EMAIL),closeSoftKeyboard());
         onView(withId(R.id.password_edit_text))
-                .perform(typeText("test_password"),closeSoftKeyboard());
+                .perform(typeText(TestUtils.TEST_PASSWORD),closeSoftKeyboard());
         onView(withId(R.id.signup_button))
                 .perform(click());
 

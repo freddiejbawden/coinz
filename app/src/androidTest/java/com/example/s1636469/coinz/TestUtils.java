@@ -60,16 +60,23 @@ public class TestUtils {
                 Log.w("TestUtils", "Failed to reset", e);
             }
         });
-        Query q = database.collection("users").whereEqualTo("name","testuser2");
-        q.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                List<DocumentSnapshot> d_list = queryDocumentSnapshots.getDocuments();
-                String f_id = d_list.get(0).getId();
-                DocumentReference o_ref = database.collection("user").document(f_id);
-                o_ref.delete();
-            }
-        });
+        database.collection("users").document(id).collection("friends").get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        List<DocumentSnapshot> d_list = queryDocumentSnapshots.getDocuments();
+                        if (!d_list.isEmpty()) {
+                            for (DocumentSnapshot d : d_list) {
+                                String f_id = d.getId();
+                                DocumentReference f_ref = database.collection("users")
+                                        .document(id)
+                                        .collection("friends")
+                                        .document(f_id);
+                                f_ref.delete();
+                            }
+                        }
+                    }
+                });
     }
 }
 
