@@ -45,8 +45,10 @@ public class MapFragment extends Fragment implements LocationEngineListener {
     private MapboxMap mapboxMap;
     private LocationEngine locationEngine;
     private Location originLocation;
-    private View view;
+    private View rootView;
     private Context context;
+
+    private String TAG = "MapFragment";
 
     @Override
     public void onAttach(Context context) {
@@ -58,8 +60,8 @@ public class MapFragment extends Fragment implements LocationEngineListener {
 
     @Override
     public View onCreateView(@NonNull  LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.fragment_map,container,false);
-        return view;
+        rootView = inflater.inflate(R.layout.fragment_map,container,false);
+        return rootView;
     }
 
     @Override
@@ -88,7 +90,7 @@ public class MapFragment extends Fragment implements LocationEngineListener {
         this.mapboxMap = map;
     }
 
-    private void mapASyncCallBack() {
+    private void mapASyncCallBack(MapboxMap mapboxMap) {
         setMapBox(mapboxMap);
         enableLocationPlugin();
         Log.d("STATUS","location loaded");
@@ -112,7 +114,7 @@ public class MapFragment extends Fragment implements LocationEngineListener {
             mapView.getMapAsync(new OnMapReadyCallback() {
                 @Override
                 public void onMapReady(MapboxMap mapboxMap) {
-                    mapASyncCallBack();
+                    mapASyncCallBack(mapboxMap);
                 }
             });
         } else {
@@ -136,17 +138,20 @@ public class MapFragment extends Fragment implements LocationEngineListener {
         switch(requestCode) {
             case Config.REQUEST_GPS: {
                 // if the permission has been granted
+                FloatingActionButton gps_center = rootView.findViewById(R.id.gps_centre);
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // get map
+                    gps_center.setEnabled(true);
                     mapView.getMapAsync(new OnMapReadyCallback() {
                         @Override
                         public void onMapReady(MapboxMap mapboxMap) {
                             // start location puck service
-                            mapASyncCallBack();
+                            mapASyncCallBack(mapboxMap);
                         }
                     });
                 } else {
                     Toast.makeText(getContext(), "Cannot access location!",Toast.LENGTH_SHORT).show();
+                    gps_center.setEnabled(false);
                 }
             }
         }
@@ -163,7 +168,12 @@ public class MapFragment extends Fragment implements LocationEngineListener {
         if (PermissionsManager.areLocationPermissionsGranted(context)) {
             // Create an instance of location engine
             startLocationEngine();
-
+            if (mapboxMap == null) {
+                Log.d(TAG, "mapboxMap Null!");
+            }
+            if (mapView == null) {
+                Log.d(TAG, "mapboxMap Null!");
+            }
             // Configure plug in
             locationPlugin = new LocationLayerPlugin(mapView, mapboxMap,locationEngine);
             locationPlugin.setRenderMode(RenderMode.COMPASS);
@@ -318,10 +328,10 @@ public class MapFragment extends Fragment implements LocationEngineListener {
     /*
      *  setUpListeners
      *
-     *  set up GPS functionality
+     *  set up GPS centering functionality
      */
     private void setUpListeners() {
-        FloatingActionButton gps =  view.findViewById(R.id.gps_centre);
+        FloatingActionButton gps =  rootView.findViewById(R.id.gps_centre);
 
         gps.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -331,6 +341,8 @@ public class MapFragment extends Fragment implements LocationEngineListener {
                     try {
                         // Force the location engine to get the location
                         locationPlugin.forceLocationUpdate(locationPlugin.getLastKnownLocation());
+                        originLocation = locationPlugin.getLastKnownLocation();
+                        setCameraPosition(originLocation,true);
                     } catch (SecurityException e) {
                         Log.d("Status","Cannot get permission to find location");
                     }
