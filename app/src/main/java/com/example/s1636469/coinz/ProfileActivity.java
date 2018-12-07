@@ -123,10 +123,10 @@ public class ProfileActivity extends Activity {
                 return;
             }
 
-            for (String k : curs.keySet()) {
+            for (String c : curs.keySet()) {
                 TextView tv = new TextView(this);
-                Log.d(TAG,(curs.get(k)).toString());
-                tv.setText(k + ": " + curs.get(k).toString());
+                double rounded_cur = Config.round(curs.get(c), Config.CUR_VALUE_DP);
+                tv.setText(c + ": " + rounded_cur);
                 tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                 tv.setTextSize(20f);
                 ll.addView(tv);
