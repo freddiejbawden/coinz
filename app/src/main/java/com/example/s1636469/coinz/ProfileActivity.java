@@ -216,7 +216,7 @@ public class ProfileActivity extends Activity {
                         public void onSuccess(Void aVoid) {
                             updateButton(true);
                             Toast.makeText(getApplicationContext(), "Added " + profile_name +
-                                    "as friend",Toast.LENGTH_SHORT).show();
+                                    " as friend",Toast.LENGTH_SHORT).show();
                         }
                     }).addOnFailureListener(new OnFailureListener() {
                 @Override

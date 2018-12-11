@@ -3,6 +3,15 @@
  *
  *  Displays the map for the user and tracks location
  *
+ *  Based on:
+ *
+ *  + Mapbox Sample Project
+ *  -(https://github.com/mapbox/mapbox-android-demo/blob/master/MapboxAndroidDemo/src/main/java/com/mapbox/mapboxandroiddemo/examples)
+ *
+ *  + Course Lectures
+ *
+ *  + Mapbox Android Video Tutorial
+ *
  */
 package com.example.s1636469.coinz;
 

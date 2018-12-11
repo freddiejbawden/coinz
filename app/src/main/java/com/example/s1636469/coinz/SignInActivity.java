@@ -114,6 +114,9 @@ public class SignInActivity extends Activity {
                     HashMap<String, Object> to_put = new HashMap<>();
                     to_put.put("last_login",Calendar.getInstance().getTime());
                     to_put.put("collected", new ArrayList<String>());
+                    for (String c : Config.currencies) {
+                        to_put.put(c,0);
+                    }
                     u_ref.set(to_put, SetOptions.merge());
                 }
                 Intent i = new Intent(SignInActivity.this, MainActivity.class);

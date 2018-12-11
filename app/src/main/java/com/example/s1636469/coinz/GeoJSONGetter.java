@@ -3,6 +3,8 @@
  *
  *  Pulls down the GeoJSON data from the inf server
  *
+ *  Based on course lectures
+ *
  *
  */
 package com.example.s1636469.coinz;
